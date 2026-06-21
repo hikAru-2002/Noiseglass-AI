@@ -1,0 +1,134 @@
+.signal-card {
+  background: white;
+  border: 1px solid #e5e5e0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  transition: all 0.2s;
+}
+
+.signal-card:hover {
+  border-color: #d5d5d0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.signal-header {
+  padding: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.signal-header:hover {
+  background: #fafaf8;
+}
+
+.signal-title {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.signal-title h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.severity {
+  padding: 0.25rem 0.75rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.severity.low {
+  background: #dbeafe;
+  color: #0c4a6e;
+}
+
+.severity.medium {
+  background: #fed7aa;
+  color: #7c2d12;
+}
+
+.severity.high {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+
+.signal-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: #666;
+  white-space: nowrap;
+}
+
+.count {
+  font-weight: 600;
+}
+
+.trend {
+  font-weight: 600;
+}
+
+.trend.increasing {
+  color: #dc2626;
+}
+
+.trend.decreasing {
+  color: #16a34a;
+}
+
+.trend.stable {
+  color: #0891b2;
+}
+
+.signal-details {
+  padding: 1rem;
+  background: #fafaf8;
+  border-top: 1px solid #e5e5e0;
+}
+
+.action {
+  margin-bottom: 1.5rem;
+}
+
+.action strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.action p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.samples strong {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.samples ul {
+  list-style: none;
+  padding: 0;
+}
+
+.samples li {
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.4;
+  border-left: 2px solid #d97706;
+  padding-left: 0.75rem;
+}
+

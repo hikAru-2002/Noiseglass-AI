@@ -1,91 +1,85 @@
-"""
-FastAPI server for Signal — the support ticket trend analyzer.
-
-Endpoints:
-  GET  /api/tickets          -> raw ticket list (for the "incoming" view)
-  POST /api/analyze          -> runs the real Claude API analysis, caches result to disk
-  GET  /api/analysis         -> returns cached analysis if present
-  POST /api/regenerate-tickets -> regenerates the synthetic dataset with a new seed
-"""
-
+"""FastAPI backend for Signal."""
 import json
 import os
-import sys
-from pathlib import Path
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-sys.path.insert(0, str(Path(__file__).parent))
-
+from pydantic import BaseModel
 from data.seed_tickets import generate_tickets
-from engine import run_full_analysis
+from engine import run_pipeline
 
 app = FastAPI(title="Signal API")
 
+# CORS for frontend dev server
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-DATA_DIR = Path(__file__).parent / "data"
-TICKETS_PATH = DATA_DIR / "tickets.json"
-ANALYSIS_CACHE_PATH = DATA_DIR / "analysis_cache.json"
+# In-memory cache
+_cache = {"result": None, "tickets": None}
 
 
-def _load_tickets():
-    if not TICKETS_PATH.exists():
-        tickets = generate_tickets()
-        TICKETS_PATH.write_text(json.dumps(tickets, indent=2))
-        return tickets
-    return json.loads(TICKETS_PATH.read_text())
+class AnalysisRequest(BaseModel):
+    """Request to run analysis."""
+    pass
 
 
-@app.get("/api/tickets")
-def get_tickets():
-    tickets = _load_tickets()
-    # strip the ground-truth field before sending to the frontend —
-    # that field exists only so WE can sanity-check the model's clustering
-    return [{k: v for k, v in t.items() if k != "_true_cluster"} for t in tickets]
-
-
-@app.get("/api/analysis")
-def get_cached_analysis():
-    if not ANALYSIS_CACHE_PATH.exists():
-        return {"cached": False}
-    return {"cached": True, **json.loads(ANALYSIS_CACHE_PATH.read_text())}
-
-
-@app.post("/api/analyze")
-def analyze():
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        raise HTTPException(
-            status_code=500,
-            detail="ANTHROPIC_API_KEY is not set in the environment. Set it before running analysis.",
-        )
-    tickets = _load_tickets()
-    try:
-        result = run_full_analysis(tickets)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    ANALYSIS_CACHE_PATH.write_text(json.dumps(result, indent=2))
-    return {"cached": False, **result}
-
-
-@app.post("/api/regenerate-tickets")
-def regenerate_tickets(seed: int = 0):
-    import random
-
-    seed = seed or random.randint(1, 100000)
-    tickets = generate_tickets(seed=seed)
-    TICKETS_PATH.write_text(json.dumps(tickets, indent=2))
-    if ANALYSIS_CACHE_PATH.exists():
-        ANALYSIS_CACHE_PATH.unlink()
-    return {"seed": seed, "count": len(tickets)}
+class RegenerateRequest(BaseModel):
+    """Request to regenerate tickets."""
+    seed: int = None
 
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "api_key_set": bool(os.environ.get("ANTHROPIC_API_KEY"))}
+    """Health check."""
+    return {"status": "ok"}
+
+
+@app.get("/api/tickets")
+def get_tickets():
+    """Get current ticket stream."""
+    if _cache["tickets"] is None:
+        _cache["tickets"] = generate_tickets(seed=42)
+    return {"tickets": _cache["tickets"]}
+
+
+@app.post("/api/analyze")
+def analyze(req: AnalysisRequest):
+    """Run the full analysis pipeline."""
+    if _cache["tickets"] is None:
+        _cache["tickets"] = generate_tickets(seed=42)
+    
+    result = run_pipeline(_cache["tickets"])
+    _cache["result"] = result
+    
+    return {
+        "signals": result["signals"],
+        "trends": result["trends"],
+    }
+
+
+@app.post("/api/regenerate-tickets")
+def regenerate_tickets(req: RegenerateRequest):
+    """Generate a fresh synthetic dataset."""
+    seed = req.seed if req.seed is not None else None
+    _cache["tickets"] = generate_tickets(seed=seed)
+    _cache["result"] = None  # Clear cached analysis
+    
+    return {"count": len(_cache["tickets"]), "tickets": _cache["tickets"]}
+
+
+@app.get("/api/result")
+def get_result():
+    """Get cached analysis result."""
+    if _cache["result"] is None:
+        return {"error": "No analysis run yet. POST to /api/analyze first."}
+    return _cache["result"]
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+

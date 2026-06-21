@@ -1,0 +1,72 @@
+.incoming-stream {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ticket {
+  padding: 1rem;
+  background: #fafaf8;
+  border: 1px solid #e5e5e0;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.ticket:hover {
+  background: #f3f3f0;
+  border-color: #d5d5d0;
+}
+
+.ticket-id {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-text {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+  color: #1a1a1a;
+}
+
+.ticket-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.customer {
+  color: #666;
+  font-weight: 500;
+}
+
+.severity {
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.severity[data-severity="low"] {
+  background: #dbeafe;
+  color: #0c4a6e;
+}
+
+.severity[data-severity="medium"] {
+  background: #fed7aa;
+  color: #7c2d12;
+}
+
+.severity[data-severity="high"] {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+
