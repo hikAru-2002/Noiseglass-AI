@@ -15,6 +15,7 @@ import io
 import json
 import os
 import sys
+import traceback
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
@@ -25,6 +26,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from data.seed_tickets import generate_tickets
 from engine import run_full_analysis
 from ingest import parse_csv_tickets, parse_pasted_tickets
+from persistence import save_analysis_run
+
 
 app = FastAPI(title="Triage API")
 
@@ -49,8 +52,6 @@ def _load_tickets():
 
 
 def _replace_active_tickets(tickets: list[dict]):
-    """Swap in a new ticket set as the active dataset, and invalidate any
-    cached analysis since it no longer corresponds to this data."""
     TICKETS_PATH.write_text(json.dumps(tickets, indent=2))
     if ANALYSIS_CACHE_PATH.exists():
         ANALYSIS_CACHE_PATH.unlink()
@@ -59,8 +60,6 @@ def _replace_active_tickets(tickets: list[dict]):
 @app.get("/api/tickets")
 def get_tickets():
     tickets = _load_tickets()
-    # strip the ground-truth field before sending to the frontend —
-    # that field exists only so WE can sanity-check the model's clustering
     return [{k: v for k, v in t.items() if k != "_true_cluster"} for t in tickets]
 
 
@@ -84,6 +83,15 @@ def analyze():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     ANALYSIS_CACHE_PATH.write_text(json.dumps(result, indent=2))
+
+    try:
+        run_id = save_analysis_run(tickets, result)
+        result["db_run_id"] = run_id
+    except Exception as e:
+        print(f"Warning: failed to save analysis run to database: {e}", flush=True)
+        traceback.print_exc()
+        sys.stdout.flush()
+
     return {"cached": False, **result}
 
 
@@ -101,7 +109,7 @@ def regenerate_tickets(seed: int = 0):
 async def upload_csv(file: UploadFile = File(...)):
     raw_bytes = await file.read()
     try:
-        csv_text = raw_bytes.decode("utf-8-sig")  # handles Excel's BOM-prefixed CSVs
+        csv_text = raw_bytes.decode("utf-8-sig")
     except UnicodeDecodeError:
         raise HTTPException(status_code=400, detail="Could not read file as UTF-8 text. Please export as a plain CSV.")
 
