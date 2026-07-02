@@ -1,0 +1,57 @@
+from database import SessionLocal
+from models import AnalysisRun, Ticket, ClusterSummary
+
+
+def save_analysis_run(tickets: list[dict], result: dict) -> int:
+    """Persist a completed analysis run to Postgres. Returns the new run's id."""
+    db = SessionLocal()
+    try:
+        run = AnalysisRun(
+            total_tickets_analyzed=result["total_tickets_analyzed"],
+            noise_filtered_count=result["noise_filtered_count"],
+        )
+        db.add(run)
+        db.flush()  # assigns run.id before we use it below
+
+        cluster_categories = {c["category"] for c in result["actionable_clusters"]}
+        ticket_meta = {}
+        for cluster in result["actionable_clusters"]:
+            for t in cluster.get("sample_tickets", []):
+                ticket_meta[t["id"]] = {
+                    "category": cluster["category"],
+                    "normalized_issue": t.get("normalized_issue"),
+                }
+
+        for t in tickets:
+            meta = ticket_meta.get(t["id"], {})
+            db.add(Ticket(
+                id=f"{run.id}-{t['id']}",  # prefix avoids collisions across runs
+                run_id=run.id,
+                created_at=t["created_at"],
+                customer_name=t["customer_name"],
+                company=t["company"],
+                channel=t["channel"],
+                subject=t["subject"],
+                body=t["body"],
+                category=meta.get("category"),
+                normalized_issue=meta.get("normalized_issue"),
+                is_actionable_signal=t["id"] in ticket_meta,
+            ))
+
+        for c in result["actionable_clusters"]:
+            db.add(ClusterSummary(
+                run_id=run.id,
+                category=c["category"],
+                total_tickets=c["total_tickets"],
+                week_counts=c["week_counts"],
+                trend_pct_vs_last_week=c["trend_pct_vs_last_week"],
+                sample_issues=c["sample_issues"],
+                headline=c.get("headline"),
+                suggested_action=c.get("suggested_action"),
+                severity=c.get("severity"),
+            ))
+
+        db.commit()
+        return run.id
+    finally:
+        db.close()
