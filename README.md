@@ -1,7 +1,7 @@
-# Signal — Support Trend Intelligence for Flowline
+# Triage — Support Trend Intelligence for Flowline
 
 A small tool that turns a pile of noisy support tickets into a ranked list of
-actionable product signals — using the real Claude API to classify and
+actionable product signals, using the real Claude API to classify and
 summarize, and plain Python to compute trend math (never trust an LLM to do
 arithmetic).
 
@@ -19,13 +19,13 @@ tooling" parts of a CS/support-tooling role.
    a category + a normalized one-sentence issue description, batched to keep
    API calls efficient.
 3. **Pass 2 — cluster + trend math** (plain Python, deterministic): tickets
-   are grouped by category, and week-over-week volume change is computed in
-   code — not asked of the model, since trend math should never be left to
+   are then grouped by category, and week-over-week volume change is computed in
+   code, but is not asked of the model, since trend math should never be left to
    an LLM to "remember" or estimate.
 4. **Pass 3 — summarize** (Claude API): for clusters with enough volume to
-   matter, Claude writes a short, specific headline, a concrete suggested
-   action, and a severity rating — given the real computed numbers as ground
-   truth, not asked to invent them.
+   have an impact, Claude writes a short, specific headline, a concrete suggested
+   action, and a severity rating, given the real computed numbers as ground
+   truth rather than hallucination.
 5. **Frontend**: a dashboard showing the raw "incoming" stream resolving into
    ranked "signal" cards, each expandable into trend sparkline + sample
    tickets + suggested action.
