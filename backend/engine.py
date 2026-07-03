@@ -142,7 +142,7 @@ def build_clusters(tickets: list[dict], classifications: list[dict]) -> list[dic
     return cluster_list
 
 
-def summarize_clusters(clusters: list[dict], min_volume: int = 2) -> list[dict]:
+def summarize_clusters(clusters: list[dict], min_volume: int = 1) -> list[dict]:
     """Pass 2: ask Claude to write the human-facing brief for clusters with
     enough volume to be worth a product team's attention."""
     relevant = [c for c in clusters if c["total_tickets"] >= min_volume]
