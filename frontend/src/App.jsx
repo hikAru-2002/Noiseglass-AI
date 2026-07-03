@@ -4,7 +4,7 @@ import SignalCard from './components/SignalCard.jsx'
 import IncomingStream from './components/IncomingStream.jsx'
 import EmptyState from './components/EmptyState.jsx'
 
-const API_BASE = '/api'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export default function App() {
   const [tickets, setTickets] = useState([])
@@ -20,29 +20,27 @@ export default function App() {
 
   async function fetchTickets() {
     try {
-      const res = await fetch(`${API_BASE}/tickets`)
+      const res = await fetch(API_BASE + '/api/tickets')
       const data = await res.json()
       setTickets(data)
     } catch (e) {
-      setError('Could not reach the backend. Is it running on port 8000?')
+      setError('Could not reach the backend. Is it running?')
     }
   }
 
   async function fetchCachedAnalysis() {
     try {
-      const res = await fetch(`${API_BASE}/analysis`)
+      const res = await fetch(API_BASE + '/api/analysis')
       const data = await res.json()
       if (data.cached) setAnalysis(data)
-    } catch (e) {
-      // silent — not critical, user can run analysis manually
-    }
+    } catch (e) {}
   }
 
   async function runAnalysis() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/analyze`, { method: 'POST' })
+      const res = await fetch(API_BASE + '/api/analyze', { method: 'POST' })
       if (!res.ok) {
         const errBody = await res.json()
         throw new Error(errBody.detail || 'Analysis failed')
@@ -84,21 +82,13 @@ export default function App() {
           <span className="ticket-total">
             <span className="mono">{totalCount}</span> tickets / 4 weeks
           </span>
-          <button
-            className="run-btn"
-            onClick={runAnalysis}
-            disabled={loading || tickets.length === 0}
-          >
-            {loading ? 'Resolving signal…' : analysis ? 'Re-run analysis' : 'Run analysis'}
+          <button className="run-btn" onClick={runAnalysis} disabled={loading || tickets.length === 0}>
+            {loading ? 'Resolving signal...' : analysis ? 'Re-run analysis' : 'Run analysis'}
           </button>
         </div>
       </header>
 
-      {error && (
-        <div className="error-banner">
-          {error}
-        </div>
-      )}
+      {error && <div className="error-banner">{error}</div>}
 
       <main className="main-grid">
         <section className="stream-panel">
@@ -113,9 +103,7 @@ export default function App() {
           <div className="panel-label">
             <span className="eyebrow">SIGNAL</span>
             <span className="panel-label-sub">
-              {analysis
-                ? `${sortedClusters.length} issues worth a product team's attention`
-                : 'run analysis to resolve noise into signal'}
+              {analysis ? sortedClusters.length + " issues worth a product team's attention" : 'run analysis to resolve noise into signal'}
             </span>
           </div>
 
@@ -126,7 +114,7 @@ export default function App() {
           {loading && (
             <div className="loading-state">
               <div className="loading-pulse" />
-              <p>Reading {tickets.length} tickets, clustering by underlying issue, and writing the brief…</p>
+              <p>Reading {tickets.length} tickets, clustering by underlying issue, and writing the brief...</p>
             </div>
           )}
 
@@ -138,18 +126,13 @@ export default function App() {
                     key={c.category}
                     cluster={c}
                     expanded={expandedCategory === c.category}
-                    onToggle={() =>
-                      setExpandedCategory(
-                        expandedCategory === c.category ? null : c.category
-                      )
-                    }
+                    onToggle={() => setExpandedCategory(expandedCategory === c.category ? null : c.category)}
                   />
                 ))}
               </div>
               {noiseCount !== null && (
                 <div className="noise-footer">
-                  <span className="mono">{noiseCount}</span> tickets filtered as noise
-                  (vague, off-topic, or non-actionable) — not shown above
+                  <span className="mono">{noiseCount}</span> tickets filtered as noise (vague, off-topic, or non-actionable), not shown above
                 </div>
               )}
             </>
