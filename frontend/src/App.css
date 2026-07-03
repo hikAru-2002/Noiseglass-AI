@@ -443,3 +443,62 @@
   font-size: 13.5px;
   line-height: 1.6;
 }
+
+.github-picker {
+  position: relative;
+}
+
+.github-picker-toggle {
+  background: transparent;
+  color: var(--text-secondary, #a0aec0);
+  border: 1px solid var(--border-strong, #3a3f4b);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.github-picker-toggle:hover {
+  color: var(--text-primary, #ffffff);
+  border-color: var(--text-primary, #ffffff);
+}
+
+.github-picker-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--surface-1, #12141c);
+  border: 1px solid var(--border-strong, #3a3f4b);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 220px;
+  z-index: 20;
+}
+
+.github-picker-panel input {
+  background: var(--surface-0, #0a0b0f);
+  border: 1px solid var(--border-strong, #3a3f4b);
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: var(--text-primary, #ffffff);
+  font-size: 13px;
+}
+
+.github-picker-panel button {
+  background: var(--text-primary, #ffffff);
+  color: var(--surface-0, #0a0b0f);
+  border: none;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.github-picker-error {
+  color: #ff6b6b;
+  font-size: 11px;
+}

@@ -11,7 +11,7 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
     setLoading(true)
     setError(null)
     try {
-      const body = new URLSearchParams({ owner, repo, limit: '50' })
+      const body = new URLSearchParams({ owner, repo, limit: '100' })
       const res = await fetch(`${apiBase}/api/fetch-github-issues`, {
         method: 'POST',
         body,
