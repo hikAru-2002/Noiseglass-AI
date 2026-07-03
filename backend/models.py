@@ -51,3 +51,20 @@ class ClusterSummary(Base):
     severity = Column(String, nullable=True)
 
     run = relationship("AnalysisRun", back_populates="clusters")
+
+class ActiveTicket(Base):
+    """The current working set of tickets shown in the Incoming view.
+    Unlike Ticket (which is a snapshot tied to a specific analysis run),
+    this table holds whatever ticket set is currently active, whether
+    synthetic, uploaded, or pulled from GitHub. Replacing the active set
+    deletes all rows and inserts the new ones."""
+    __tablename__ = "active_tickets"
+
+    id = Column(String, primary_key=True)
+    created_at = Column(String)
+    customer_name = Column(String)
+    company = Column(String)
+    channel = Column(String)
+    subject = Column(String)
+    body = Column(String)
+    source = Column(String, default="synthetic")  # synthetic, github, upload, etc.

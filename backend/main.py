@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from data.seed_tickets import generate_tickets
 from engine import run_full_analysis
 from ingest import parse_csv_tickets, parse_pasted_tickets
-from persistence import save_analysis_run
+from persistence import save_analysis_run, load_active_tickets, save_active_tickets
 from github_ingest import fetch_github_issues
 
 
@@ -41,20 +41,19 @@ app.add_middleware(
 )
 
 DATA_DIR = Path(__file__).parent / "data"
-TICKETS_PATH = DATA_DIR / "tickets.json"
 ANALYSIS_CACHE_PATH = DATA_DIR / "analysis_cache.json"
 
 
 def _load_tickets():
-    if not TICKETS_PATH.exists():
+    tickets = load_active_tickets()
+    if not tickets:
         tickets = generate_tickets()
-        TICKETS_PATH.write_text(json.dumps(tickets, indent=2))
-        return tickets
-    return json.loads(TICKETS_PATH.read_text())
+        save_active_tickets(tickets, source="synthetic")
+    return tickets
 
 
-def _replace_active_tickets(tickets: list[dict]):
-    TICKETS_PATH.write_text(json.dumps(tickets, indent=2))
+def _replace_active_tickets(tickets: list[dict], source: str = "unknown"):
+    save_active_tickets(tickets, source=source)
     if ANALYSIS_CACHE_PATH.exists():
         ANALYSIS_CACHE_PATH.unlink()
 
@@ -103,7 +102,7 @@ def regenerate_tickets(seed: int = 0):
 
     seed = seed or random.randint(1, 100000)
     tickets = generate_tickets(seed=seed)
-    _replace_active_tickets(tickets)
+    _replace_active_tickets(tickets, source="synthetic")
     return {"seed": seed, "count": len(tickets)}
 
 
@@ -121,7 +120,7 @@ async def upload_csv(file: UploadFile = File(...)):
             status_code=400,
             detail="No usable tickets found. Make sure your CSV has a header row with a text column (e.g. 'body', 'description', or 'message').",
         )
-    _replace_active_tickets(tickets)
+    _replace_active_tickets(tickets, source="upload")
     return {"count": len(tickets)}
 
 
@@ -130,19 +129,19 @@ def upload_text(text: str = Form(...)):
     tickets = parse_pasted_tickets(text)
     if not tickets:
         raise HTTPException(status_code=400, detail="No ticket lines found in the pasted text.")
-    _replace_active_tickets(tickets)
+    _replace_active_tickets(tickets, source="upload")
     return {"count": len(tickets)}
 
 
 @app.post("/api/fetch-github-issues")
-def fetch_github_issues_endpoint(owner: str = Form(...), repo: str = Form(...), limit: int = Form(50)):
+def fetch_github_issues_endpoint(owner: str = Form(...), repo: str = Form(...), limit: int = Form(100)):
     try:
         tickets = fetch_github_issues(owner, repo, limit)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Failed to fetch from GitHub: {e}")
     if not tickets:
         raise HTTPException(status_code=400, detail="No usable issues found in that repo.")
-    _replace_active_tickets(tickets)
+    _replace_active_tickets(tickets, source="github")
     return {"count": len(tickets), "source": f"{owner}/{repo}"}
 
 

@@ -1,6 +1,5 @@
 from database import SessionLocal
-from models import AnalysisRun, Ticket, ClusterSummary
-
+from models import AnalysisRun, Ticket, ClusterSummary, ActiveTicket
 
 def save_analysis_run(tickets: list[dict], result: dict) -> int:
     """Persist a completed analysis run to Postgres. Returns the new run's id."""
@@ -53,5 +52,46 @@ def save_analysis_run(tickets: list[dict], result: dict) -> int:
 
         db.commit()
         return run.id
+    finally:
+        db.close()
+
+def load_active_tickets() -> list[dict]:
+    """Load the current active ticket set from Postgres."""
+    db = SessionLocal()
+    try:
+        rows = db.query(ActiveTicket).all()
+        return [
+            {
+                "id": r.id,
+                "created_at": r.created_at,
+                "customer_name": r.customer_name,
+                "company": r.company,
+                "channel": r.channel,
+                "subject": r.subject,
+                "body": r.body,
+            }
+            for r in rows
+        ]
+    finally:
+        db.close()
+
+
+def save_active_tickets(tickets: list[dict], source: str = "synthetic"):
+    """Replace the active ticket set in Postgres with a new one."""
+    db = SessionLocal()
+    try:
+        db.query(ActiveTicket).delete()
+        for t in tickets:
+            db.add(ActiveTicket(
+                id=t["id"],
+                created_at=t["created_at"],
+                customer_name=t["customer_name"],
+                company=t["company"],
+                channel=t["channel"],
+                subject=t["subject"],
+                body=t["body"],
+                source=source,
+            ))
+        db.commit()
     finally:
         db.close()
