@@ -8,6 +8,7 @@ Endpoints:
   POST /api/regenerate-tickets -> regenerates the synthetic dataset with a new seed
   POST /api/upload-csv         -> replace the active ticket set with an uploaded CSV
   POST /api/upload-text        -> replace the active ticket set with pasted free text
+  POST /api/fetch-github-issues -> replace the active ticket set with real GitHub issues
 """
 
 import csv
@@ -27,6 +28,7 @@ from data.seed_tickets import generate_tickets
 from engine import run_full_analysis
 from ingest import parse_csv_tickets, parse_pasted_tickets
 from persistence import save_analysis_run
+from github_ingest import fetch_github_issues
 
 
 app = FastAPI(title="Triage API")
@@ -130,6 +132,18 @@ def upload_text(text: str = Form(...)):
         raise HTTPException(status_code=400, detail="No ticket lines found in the pasted text.")
     _replace_active_tickets(tickets)
     return {"count": len(tickets)}
+
+
+@app.post("/api/fetch-github-issues")
+def fetch_github_issues_endpoint(owner: str = Form(...), repo: str = Form(...), limit: int = Form(50)):
+    try:
+        tickets = fetch_github_issues(owner, repo, limit)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch from GitHub: {e}")
+    if not tickets:
+        raise HTTPException(status_code=400, detail="No usable issues found in that repo.")
+    _replace_active_tickets(tickets)
+    return {"count": len(tickets), "source": f"{owner}/{repo}"}
 
 
 @app.get("/api/health")
