@@ -250,6 +250,7 @@ export default function Dashboard() {
                       expandedCategory === c.category ? null : c.category
                     )
                   }
+                  onSelectTicket={setSelectedTicket}
                 />
               ))}
             </div>
