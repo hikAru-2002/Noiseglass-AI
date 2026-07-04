@@ -8,6 +8,7 @@ import GithubSourcePicker from './components/GithubSourcePicker.jsx'
 import TicketDetailPanel from './components/TicketDetailPanel.jsx'
 import AnalysisLoader from './components/AnalysisLoader.jsx'
 import AmbientField from './components/AmbientField.jsx'
+import RunHistory from './components/RunHistory.jsx'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -151,7 +152,7 @@ export default function Dashboard() {
             ←
           </Link>
           <div className="wordmark-mark" />
-          <span className="wordmark-text">Triage</span>
+          <span className="wordmark-text">Noiseglass</span>
           <span className="topbar-sub">Support Trend Intelligence</span>
         </div>
         <div className="topbar-right">
@@ -182,6 +183,8 @@ export default function Dashboard() {
           <span className="stat-label">filtered as noise</span>
         </div>
       </div>
+
+      <RunHistory apiBase={API_BASE} refreshToken={analysis?.generated_at} />
 
       {error && (
         <div className="error-banner">
@@ -255,7 +258,7 @@ export default function Dashboard() {
       </main>
 
       <footer className="footer">
-        <span className="footer-brand mono">TRIAGE © 2026</span>
+        <span className="footer-brand mono">NOISEGLASS © 2026</span>
         <span className="footer-sub">
           real tickets · real trend math · written by Claude
         </span>

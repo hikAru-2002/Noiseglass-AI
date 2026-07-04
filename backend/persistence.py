@@ -55,6 +55,30 @@ def save_analysis_run(tickets: list[dict], result: dict) -> int:
     finally:
         db.close()
 
+def list_runs(limit: int = 20) -> list[dict]:
+    """Return recent analysis runs, newest first, for the history view."""
+    db = SessionLocal()
+    try:
+        rows = (
+            db.query(AnalysisRun)
+            .order_by(AnalysisRun.generated_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "id": r.id,
+                "generated_at": r.generated_at.isoformat() if r.generated_at else None,
+                "total_tickets_analyzed": r.total_tickets_analyzed,
+                "noise_filtered_count": r.noise_filtered_count,
+                "cluster_count": len(r.clusters),
+            }
+            for r in rows
+        ]
+    finally:
+        db.close()
+
+
 def load_active_tickets() -> list[dict]:
     """Load the current active ticket set from Postgres."""
     db = SessionLocal()

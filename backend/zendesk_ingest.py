@@ -18,7 +18,7 @@ def fetch_zendesk_tickets(
     limit: int = 100,
 ) -> list[dict]:
     """Fetch recent tickets from a Zendesk instance, normalized into
-    Triage's ticket shape. Sideloads users to resolve requester names."""
+    Noiseglass's ticket shape. Sideloads users to resolve requester names."""
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets.json"
     params = {
         "sort_by": "created_at",

@@ -36,7 +36,7 @@ def resolve_app(term: str, country: str = "us") -> tuple[int, str]:
 
 def fetch_appstore_reviews(term: str, country: str = "us", limit: int = 100) -> list[dict]:
     """Fetch recent App Store reviews for an app, normalized into
-    Triage's ticket shape. Ratings are prefixed into the body so the
+    Noiseglass's ticket shape. Ratings are prefixed into the body so the
     analysis engine can weigh sentiment."""
     app_id, app_name = resolve_app(term, country)
 

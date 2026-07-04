@@ -20,9 +20,9 @@
 }
 
 .hero-masthead {
-  font-size: clamp(64px, 13vw, 150px);
+  font-size: clamp(44px, 8.2vw, 108px);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   line-height: 1;
   margin: 8px 0 28px;
   background: linear-gradient(

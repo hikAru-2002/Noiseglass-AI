@@ -56,7 +56,7 @@ export default function Landing() {
       <nav className="landing-nav">
         <div className="landing-wordmark">
           <div className="wordmark-mark" />
-          <span>Triage</span>
+          <span>Noiseglass</span>
         </div>
         <button className="nav-launch-btn" onClick={() => navigate('/app')}>
           Launch console
@@ -64,8 +64,8 @@ export default function Landing() {
       </nav>
 
       <section className="hero">
-        <div className="hero-masthead" aria-label="Triage">
-          TRIAGE
+        <div className="hero-masthead" aria-label="Noiseglass">
+          NOISEGLASS
         </div>
         <h1 className="hero-title">
           Cut through the noise.<br />See the real signal.

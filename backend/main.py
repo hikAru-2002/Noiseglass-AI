@@ -1,5 +1,5 @@
 """
-FastAPI server for Triage, the support ticket trend analyzer.
+FastAPI server for Noiseglass, the support ticket trend analyzer.
 
 Endpoints:
   GET  /api/tickets            -> raw ticket list (for the "incoming" view)
@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from data.seed_tickets import generate_tickets
 from engine import run_full_analysis
 from ingest import parse_csv_tickets, parse_pasted_tickets
-from persistence import save_analysis_run, load_active_tickets, save_active_tickets
+from persistence import save_analysis_run, load_active_tickets, save_active_tickets, list_runs
 from github_ingest import fetch_github_issues
 from zendesk_ingest import fetch_zendesk_tickets
 from appstore_ingest import fetch_appstore_reviews
@@ -42,7 +42,7 @@ if IS_SQLITE:
     Base.metadata.create_all(bind=engine)
 
 
-app = FastAPI(title="Triage API")
+app = FastAPI(title="Noiseglass API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -221,6 +221,14 @@ def fetch_reddit_posts_endpoint(
     _replace_active_tickets(tickets, source="reddit")
     scope = f"r/{subreddit}" if subreddit.strip() else "all of Reddit"
     return {"count": len(tickets), "source": f"Reddit: '{query}' in {scope}"}
+
+
+@app.get("/api/runs")
+def get_runs(limit: int = 20):
+    try:
+        return {"runs": list_runs(limit)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load run history: {e}")
 
 
 @app.get("/api/health")

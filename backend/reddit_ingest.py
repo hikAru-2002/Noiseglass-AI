@@ -21,7 +21,7 @@ def fetch_reddit_posts(
     limit: int = 100,
 ) -> list[dict]:
     """Fetch recent Reddit posts matching a query, normalized into
-    Triage's ticket shape. Only text posts are kept, since link posts
+    Noiseglass's ticket shape. Only text posts are kept, since link posts
     carry no feedback to analyze."""
     subreddit = subreddit.strip().lstrip("r/").strip("/")
     if subreddit:

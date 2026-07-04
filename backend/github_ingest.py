@@ -15,7 +15,7 @@ GITHUB_API = "https://api.github.com"
 
 def fetch_github_issues(owner: str, repo: str, limit: int = 50) -> list[dict]:
     """Fetch recent issues (not pull requests) from a public GitHub repo,
-    normalized into Triage's ticket shape."""
+    normalized into Noiseglass's ticket shape."""
     url = f"{GITHUB_API}/repos/{owner}/{repo}/issues"
     params = {
         "state": "all",

@@ -247,6 +247,67 @@ input {
 }
 
 /* ------------------------------------------------------------------ */
+/* Run history                                                         */
+/* ------------------------------------------------------------------ */
+
+.run-history {
+  margin-bottom: 24px;
+}
+
+.run-history-label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.run-history-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.run-history-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.run-chip {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--surface-1);
+  border: 0.5px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 11px;
+  transition: border-color var(--speed) var(--ease);
+}
+
+.run-chip:hover {
+  border-color: var(--border-strong);
+}
+
+.run-chip:first-child {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+
+.run-chip-date {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+}
+
+.run-chip-stats {
+  font-size: 10px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ */
 /* Layout / labels                                                     */
 /* ------------------------------------------------------------------ */
 
