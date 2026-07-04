@@ -131,6 +131,7 @@ input {
   padding-bottom: 20px;
   margin-bottom: 28px;
   border-bottom: 0.5px solid var(--border);
+  z-index: 60; /* keep the source picker dropdown above the stats row and grid */
 }
 
 .topbar-left {
@@ -157,8 +158,8 @@ input {
 }
 
 .wordmark-mark {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   background: var(--text-primary);
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
   transition: transform 0.3s var(--ease);
@@ -169,16 +170,16 @@ input {
 }
 
 .wordmark-text {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 21px;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
 .topbar-sub {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   margin-left: 6px;
-  padding-left: 10px;
+  padding-left: 12px;
   border-left: 0.5px solid var(--border);
 }
 
@@ -192,10 +193,11 @@ input {
   background: var(--text-primary);
   color: var(--bg);
   border: none;
-  padding: 11px 22px;
-  font-size: 14px;
+  padding: 14px 28px;
+  font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.01em;
+  border-radius: 8px;
 }
 
 .run-btn:hover:not(:disabled) {
@@ -804,10 +806,11 @@ input {
   background: var(--text-primary);
   color: var(--bg);
   border: none;
-  padding: 11px 22px;
-  font-size: 14px;
+  padding: 14px 28px;
+  font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.01em;
+  border-radius: 8px;
 }
 
 .github-picker-toggle:hover {
