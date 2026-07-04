@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import './App.css'
 import SignalCard from './components/SignalCard.jsx'
 import IncomingStream from './components/IncomingStream.jsx'
@@ -8,6 +9,23 @@ import TicketDetailPanel from './components/TicketDetailPanel.jsx'
 import AnalysisLoader from './components/AnalysisLoader.jsx'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+// Derive a 4-tier rank from severity, trend momentum, and volume.
+// SEVERE = high severity that is also spiking; LOW = quiet and flat.
+function rankCluster(c) {
+  const base = { high: 3, medium: 2, low: 1 }[c.severity] ?? 1
+  const trend = c.trend_pct_vs_last_week ?? 0
+  const vol = c.total_tickets ?? 0
+  let score = base
+  if (trend >= 100) score += 1.5
+  else if (trend > 0) score += 0.75
+  if (vol >= 6) score += 1
+  else if (vol >= 3) score += 0.5
+  if (score >= 4.25) return { tier: 'severe', label: 'SEVERE', score }
+  if (score >= 3) return { tier: 'high', label: 'HIGH', score }
+  if (score >= 2) return { tier: 'moderate', label: 'MODERATE', score }
+  return { tier: 'low', label: 'LOW', score }
+}
 
 export default function Dashboard() {
   const [tickets, setTickets] = useState([])
@@ -94,13 +112,12 @@ export default function Dashboard() {
 
   const sortedClusters = useMemo(() => {
     if (!analysis?.actionable_clusters) return []
-    const severityRank = { high: 0, medium: 1, low: 2 }
-    return [...analysis.actionable_clusters].sort((a, b) => {
-      const sa = severityRank[a.severity] ?? 3
-      const sb = severityRank[b.severity] ?? 3
-      if (sa !== sb) return sa - sb
-      return b.total_tickets - a.total_tickets
-    })
+    return analysis.actionable_clusters
+      .map((c) => ({ ...c, rank: rankCluster(c) }))
+      .sort((a, b) => {
+        if (b.rank.score !== a.rank.score) return b.rank.score - a.rank.score
+        return b.total_tickets - a.total_tickets
+      })
   }, [analysis])
 
   const filteredTickets = useMemo(() => {
@@ -117,6 +134,9 @@ export default function Dashboard() {
     <div className="app">
       <header className="topbar">
         <div className="topbar-left">
+          <Link to="/" className="back-link mono" title="Back to homepage">
+            ←
+          </Link>
           <div className="wordmark-mark" />
           <span className="wordmark-text">Signal</span>
           <span className="topbar-sub">support trend intelligence</span>
@@ -215,6 +235,13 @@ export default function Dashboard() {
           )}
         </section>
       </main>
+
+      <footer className="footer">
+        <span className="footer-brand mono">TRIAGE © 2026</span>
+        <span className="footer-sub">
+          real tickets · real trend math · written by Claude
+        </span>
+      </footer>
 
       <TicketDetailPanel
         ticket={selectedTicket}

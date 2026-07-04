@@ -1,4 +1,4 @@
-const SEVERITY_LABEL = { high: 'high', medium: 'medium', low: 'low' }
+const FALLBACK_LABEL = { high: 'HIGH', medium: 'MODERATE', low: 'LOW' }
 
 function TrendBadge({ pct }) {
   if (pct === undefined || pct === null) return null
@@ -25,9 +25,13 @@ export default function SignalCard({ cluster, expanded, onToggle }) {
     <div className={`signal-card ${expanded ? 'signal-card-expanded' : ''}`}>
       <button className="signal-card-header" onClick={onToggle}>
         <div className="signal-card-header-top">
-          <span className={`signal-card-severity mono severity-${cluster.severity || 'low'}`}>
+          <span
+            className={`signal-card-severity mono severity-${
+              cluster.rank?.tier || cluster.severity || 'low'
+            }`}
+          >
             <span className="severity-dot" />
-            {SEVERITY_LABEL[cluster.severity] || 'low'}
+            {cluster.rank?.label || FALLBACK_LABEL[cluster.severity] || 'LOW'}
           </span>
           <span className="ticket-count mono">{cluster.total_tickets}</span>
         </div>
