@@ -94,6 +94,11 @@ body::after {
   z-index: 1;
 }
 
+/* topbar must outrank siblings so the source picker dropdown is clickable */
+.app > .topbar:not(.ambient-field) {
+  z-index: 60;
+}
+
 button {
   font-family: var(--font-sans);
   font-size: 13px;
@@ -819,18 +824,18 @@ input {
 
 .github-picker-panel {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
   z-index: 50;
-  width: 264px;
+  width: 300px;
   background: var(--surface-2);
   border: 0.5px solid var(--border-strong);
-  border-radius: var(--radius);
-  padding: 14px;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  animation: picker-in 0.15s var(--ease);
+  gap: 12px;
+  animation: picker-in 0.18s var(--ease);
 }
 
 @keyframes picker-in {
@@ -860,11 +865,11 @@ input {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 10.5px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 5px 0;
-  border-radius: 4px;
+  padding: 8px 0;
+  border-radius: 5px;
 }
 
 .source-tab:hover {
@@ -899,13 +904,17 @@ input {
   min-width: 0;
   background: var(--bg);
   border: 0.5px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: 7px;
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 12px;
-  padding: 7px 9px;
+  font-size: 13px;
+  padding: 10px 12px;
   outline: none;
-  transition: border-color var(--speed) var(--ease);
+  transition: border-color var(--speed) var(--ease), background var(--speed) var(--ease);
+}
+
+.github-picker-input:hover {
+  border-color: var(--border-strong);
 }
 
 .github-picker-input::placeholder {
@@ -925,8 +934,10 @@ input {
   background: var(--text-primary);
   color: var(--bg);
   border: none;
-  padding: 8px 0;
+  padding: 11px 0;
+  font-size: 13.5px;
   font-weight: 500;
+  border-radius: 7px;
 }
 
 .github-picker-fetch:hover:not(:disabled) {

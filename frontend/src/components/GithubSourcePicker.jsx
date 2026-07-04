@@ -101,7 +101,7 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
                 className="github-picker-input mono"
                 value={appTerm}
                 onChange={(e) => setAppTerm(e.target.value)}
-                placeholder="app name, e.g. spotify"
+                placeholder="app name"
                 spellCheck={false}
               />
               <span className="source-note">
@@ -116,14 +116,14 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
                 className="github-picker-input mono"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="search, e.g. notion sync"
+                placeholder="search term"
                 spellCheck={false}
               />
               <input
                 className="github-picker-input mono"
                 value={subreddit}
                 onChange={(e) => setSubreddit(e.target.value)}
-                placeholder="subreddit (optional), e.g. Notion"
+                placeholder="subreddit (optional)"
                 spellCheck={false}
               />
               <span className="source-note">
