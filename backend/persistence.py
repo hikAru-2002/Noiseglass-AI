@@ -100,6 +100,16 @@ def load_active_tickets() -> list[dict]:
         db.close()
 
 
+def get_active_source() -> str | None:
+    """Return the source label of the current active ticket set, if any."""
+    db = SessionLocal()
+    try:
+        row = db.query(ActiveTicket).first()
+        return row.source if row else None
+    finally:
+        db.close()
+
+
 def save_active_tickets(tickets: list[dict], source: str = "synthetic"):
     """Replace the active ticket set in Postgres with a new one."""
     db = SessionLocal()

@@ -71,7 +71,7 @@ export default function Landing() {
           Cut through the noise.<br />See the real signal.
         </h1>
         <p className="hero-sub">
-          Signal clusters live support tickets into ranked, actionable trends,
+          Noiseglass clusters live support tickets into ranked, actionable trends,
           powered by Claude and real deterministic math, not guesswork.
         </p>
         <button className="hero-cta" onClick={() => navigate('/app')}>
@@ -98,7 +98,7 @@ export default function Landing() {
         <div className="feature">
           <span className="feature-number mono">01</span>
           <h3>Pull from anywhere</h3>
-          <p>GitHub Issues today. Reddit and Hacker News next. Real tickets, not synthetic demos.</p>
+          <p>GitHub Issues, App Store reviews, Reddit posts, Zendesk tickets. Real feedback, not synthetic demos.</p>
         </div>
         <div className="feature">
           <span className="feature-number mono">02</span>

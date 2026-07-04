@@ -27,7 +27,13 @@ sys.path.insert(0, str(Path(__file__).parent))
 from data.seed_tickets import generate_tickets
 from engine import run_full_analysis
 from ingest import parse_csv_tickets, parse_pasted_tickets
-from persistence import save_analysis_run, load_active_tickets, save_active_tickets, list_runs
+from persistence import (
+    save_analysis_run,
+    load_active_tickets,
+    save_active_tickets,
+    list_runs,
+    get_active_source,
+)
 from github_ingest import fetch_github_issues
 from zendesk_ingest import fetch_zendesk_tickets
 from appstore_ingest import fetch_appstore_reviews
@@ -69,6 +75,24 @@ def _replace_active_tickets(tickets: list[dict], source: str = "unknown"):
         ANALYSIS_CACHE_PATH.unlink()
 
 
+def _describe_source() -> str | None:
+    """Turn the stored source label into a human-readable phrase for the
+    AI prompts, so Claude knows what kind of feedback it is reading."""
+    source = get_active_source()
+    if not source:
+        return None
+    kind, _, detail = source.partition(":")
+    templates = {
+        "github": f"GitHub issues from the repository {detail}",
+        "appstore": f"public App Store reviews of the app '{detail}'",
+        "reddit": f"Reddit posts matching {detail}",
+        "zendesk": f"Zendesk support tickets from {detail}",
+        "upload": "support tickets uploaded by the user",
+        "synthetic": "synthetic demo support tickets for a B2B SaaS workflow automation product called Flowline",
+    }
+    return templates.get(kind)
+
+
 @app.get("/api/tickets")
 def get_tickets():
     tickets = _load_tickets()
@@ -91,7 +115,7 @@ def analyze():
         )
     tickets = _load_tickets()
     try:
-        result = run_full_analysis(tickets)
+        result = run_full_analysis(tickets, source_context=_describe_source())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     ANALYSIS_CACHE_PATH.write_text(json.dumps(result, indent=2))
@@ -152,7 +176,7 @@ def fetch_github_issues_endpoint(owner: str = Form(...), repo: str = Form(...), 
         raise HTTPException(status_code=502, detail=f"Failed to fetch from GitHub: {e}")
     if not tickets:
         raise HTTPException(status_code=400, detail="No usable issues found in that repo.")
-    _replace_active_tickets(tickets, source="github")
+    _replace_active_tickets(tickets, source=f"github:{owner}/{repo}")
     return {"count": len(tickets), "source": f"{owner}/{repo}"}
 
 
@@ -181,7 +205,7 @@ def fetch_zendesk_tickets_endpoint(
         raise HTTPException(status_code=502, detail=f"Failed to fetch from Zendesk: {e}")
     if not tickets:
         raise HTTPException(status_code=400, detail="No usable tickets found in that Zendesk instance.")
-    _replace_active_tickets(tickets, source="zendesk")
+    _replace_active_tickets(tickets, source=f"zendesk:{subdomain}.zendesk.com")
     return {"count": len(tickets), "source": f"{subdomain}.zendesk.com"}
 
 
@@ -199,7 +223,7 @@ def fetch_appstore_reviews_endpoint(
         raise HTTPException(status_code=502, detail=f"Failed to fetch App Store reviews: {e}")
     if not tickets:
         raise HTTPException(status_code=400, detail="No reviews found for that app.")
-    _replace_active_tickets(tickets, source="appstore")
+    _replace_active_tickets(tickets, source=f"appstore:{app_term}")
     return {"count": len(tickets), "source": f"App Store: {app_term}"}
 
 
@@ -218,8 +242,8 @@ def fetch_reddit_posts_endpoint(
             status_code=400,
             detail="No text posts found for that search. Try a broader query or a product subreddit.",
         )
-    _replace_active_tickets(tickets, source="reddit")
     scope = f"r/{subreddit}" if subreddit.strip() else "all of Reddit"
+    _replace_active_tickets(tickets, source=f"reddit:'{query}' in {scope}")
     return {"count": len(tickets), "source": f"Reddit: '{query}' in {scope}"}
 
 
