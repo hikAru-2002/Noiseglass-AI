@@ -2,7 +2,7 @@
 Pulls real Zendesk tickets and normalizes them into the same ticket shape
 ingest.py produces: { id, created_at, customer_name, company, channel, subject, body }
 
-Auth: Zendesk API token auth — basic auth with "{email}/token" as the
+Auth: Zendesk API token auth. Basic auth with "{email}/token" as the
 username and the API token as the password. Credentials can be passed per
 request or set in the environment as ZENDESK_SUBDOMAIN / ZENDESK_EMAIL /
 ZENDESK_API_TOKEN.

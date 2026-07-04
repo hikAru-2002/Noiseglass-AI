@@ -111,7 +111,7 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
                 spellCheck={false}
               />
               <span className="zendesk-note">
-                public reviews via Apple's RSS feed — no auth needed
+                public reviews via Apple's RSS feed, no auth needed
               </span>
             </div>
           )}
@@ -144,7 +144,7 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
                 spellCheck={false}
               />
               <span className="zendesk-note">
-                token stays on your backend — never stored
+                token stays on your backend, never stored
               </span>
             </div>
           )}

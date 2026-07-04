@@ -21,18 +21,19 @@
 
 .hero-masthead {
   font-size: clamp(64px, 13vw, 150px);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.06em;
   line-height: 1;
   margin: 8px 0 28px;
   background: linear-gradient(
     180deg,
-    var(--text-primary) 30%,
-    rgba(255, 255, 255, 0.25) 100%
+    #ffffff 45%,
+    rgba(255, 255, 255, 0.62) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 28px rgba(255, 255, 255, 0.14));
   user-select: none;
   animation: fadeUp 0.7s ease both;
 }

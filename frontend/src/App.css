@@ -292,6 +292,27 @@ input {
   cursor: crosshair;
 }
 
+.analysis-loader-source {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 18px 8px;
+}
+
+.analysis-loader-source-label {
+  font-size: 10px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.analysis-loader-source-name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
 .analysis-loader-status {
   display: flex;
   align-items: center;

@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 
 /**
  * Full-screen, non-interactive ambient particle field for the landing page.
- * Slow-drifting dots with faint constellation lines — same visual language
+ * Slow-drifting dots with faint constellation lines, same visual language
  * as the analysis loader, but purely atmospheric.
  */
 export default function AmbientField() {

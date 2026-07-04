@@ -6,7 +6,7 @@ label + 1-sentence normalized issue description. This turns noisy raw text
 into structured data.
 
 Pass 2 (aggregate): take all the structured pass-1 output, group by category,
-compute week-over-week volume trend ourselves (in Python, not the LLM — trend
+compute week-over-week volume trend ourselves (in Python, not the LLM; trend
 math should be deterministic, not hallucinated), then ask Claude to write a
 short, product-team-facing "signal" summary + suggested action for each
 cluster that has enough volume to matter.
@@ -42,10 +42,10 @@ For EACH ticket, return a structured classification. Respond with ONLY a JSON ar
   "id": "<ticket id, copied exactly>",
   "category": "<short snake_case category slug you choose, 2-4 words, e.g. csv_export_bug, integration_auth_error, onboarding_confusion, ui_performance, billing_issue, notification_settings, feature_request, off_topic_or_vague>",
   "normalized_issue": "<one neutral sentence describing the underlying issue, stripped of customer-specific phrasing/emotion>",
-  "is_actionable_signal": <true/false — false for vague, off-topic, or pure praise tickets that don't represent a real product issue>
+  "is_actionable_signal": <true/false. false for vague, off-topic, or pure praise tickets that don't represent a real product issue>
 }
 
-Use consistent category slugs across tickets that describe the same underlying problem, even if the customers phrased it very differently. Be specific enough to be useful to a product team, but not so specific that near-duplicate issues get split into different categories."""
+Use consistent category slugs across tickets that describe the same underlying problem, even if the customers phrased it very differently. Be specific enough to be useful to a product team, but not so specific that near-duplicate issues get split into different categories. Never use em dashes in any text you write; use commas, periods, or colons instead."""
 
 
 SUMMARIZE_SYSTEM_PROMPT = """You are a support-ops analyst preparing a weekly trends brief for the Flowline product team. You will be given a list of issue clusters, each with: category name, ticket count, week-over-week volume numbers (already computed, trust these numbers exactly, do not recompute or contradict them), and a sample of normalized issue descriptions from that cluster.
@@ -54,11 +54,11 @@ For each cluster, write:
 {
   "category": "<copied exactly>",
   "headline": "<one short, specific sentence a PM could scan in 3 seconds, citing the actual numbers given>",
-  "suggested_action": "<one concrete, specific suggested next step — not generic advice like 'investigate further'>",
+  "suggested_action": "<one concrete, specific suggested next step, not generic advice like 'investigate further'>",
   "severity": "<low|medium|high based on volume + trend + how blocking the issue sounds>"
 }
 
-Respond with ONLY a JSON array, no markdown fences, no preamble. Be concrete and specific — reference actual numbers and actual issue content, never generic boilerplate like 'users are experiencing issues.'"""
+Respond with ONLY a JSON array, no markdown fences, no preamble. Be concrete and specific: reference actual numbers and actual issue content, never generic boilerplate like 'users are experiencing issues.' Never use em dashes in any text you write; use commas, periods, or colons instead."""
 
 
 def _strip_json_fences(text: str) -> str:

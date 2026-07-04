@@ -1,5 +1,5 @@
 """
-FastAPI server for Triage — the support ticket trend analyzer.
+FastAPI server for Triage, the support ticket trend analyzer.
 
 Endpoints:
   GET  /api/tickets            -> raw ticket list (for the "incoming" view)
@@ -32,7 +32,7 @@ from github_ingest import fetch_github_issues
 from zendesk_ingest import fetch_zendesk_tickets
 from appstore_ingest import fetch_appstore_reviews
 
-# Local dev on SQLite has no Alembic history — create tables directly.
+# Local dev on SQLite has no Alembic history, so create tables directly.
 # On Railway (Postgres) the schema is managed by Alembic migrations.
 from database import engine, IS_SQLITE, Base
 import models  # noqa: F401  (registers models on Base.metadata)

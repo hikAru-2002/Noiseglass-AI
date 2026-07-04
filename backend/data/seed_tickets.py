@@ -1,5 +1,5 @@
 """
-Synthetic support ticket dataset for "Flowline" — a fictional B2B workflow
+Synthetic support ticket dataset for "Flowline", a fictional B2B workflow
 automation SaaS product. Tickets are intentionally noisy: duplicates with
 different phrasing, vague one-liners, off-topic tickets, and a mix of
 severities, spread across a 4-week window so trend-over-time logic has
@@ -101,10 +101,10 @@ def generate_tickets(seed: int = 42):
     # Weighting controls *trend* shape: which clusters are growing vs flat vs shrinking
     # across the 4-week window. (week 0 = most recent week, week 3 = oldest)
     cluster_week_weights = {
-        "csv_export_confusion":     [6, 4, 2, 1],   # growing fast — good "rising" example
+        "csv_export_confusion":     [6, 4, 2, 1],   # growing fast, good "rising" example
         "integration_auth_failure": [5, 5, 4, 5],   # steady, chronic issue
-        "onboarding_step_confusion":[7, 3, 2, 1],   # growing — tie to recent release
-        "workflow_builder_lag":     [4, 1, 0, 0],   # brand new this week — spike
+        "onboarding_step_confusion":[7, 3, 2, 1],   # growing, tie to recent release
+        "workflow_builder_lag":     [4, 1, 0, 0],   # brand new this week, spike
         "billing_seat_confusion":   [2, 2, 3, 2],   # flat background noise
         "notification_overload":    [3, 3, 2, 3],   # flat
         "feature_request_misc":     [2, 2, 2, 2],   # flat, low volume
@@ -126,7 +126,7 @@ def generate_tickets(seed: int = 42):
                     "channel": random.choice(["email", "chat", "in-app"]),
                     "subject": text[:60],
                     "body": text,
-                    "_true_cluster": cluster,  # ground truth, NOT shown to the model — used only for our own eval/demo narration
+                    "_true_cluster": cluster,  # ground truth, NOT shown to the model, used only for our own eval/demo narration
                 })
                 ticket_id += 1
 

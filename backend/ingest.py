@@ -85,7 +85,7 @@ def parse_csv_tickets(csv_text: str) -> list[dict]:
 
 
 def parse_pasted_tickets(text: str) -> list[dict]:
-    """Parse freeform pasted text into normalized ticket dicts — one ticket
+    """Parse freeform pasted text into normalized ticket dicts, one ticket
     per non-empty line. No customer/company/date metadata is available, so
     all tickets are stamped with the current time (they'll all land in the
     'this week' bucket, which is the honest reflection of what we know)."""

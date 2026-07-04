@@ -11,7 +11,7 @@ const PHASES = [
 const CYCLE_MS = 7000 // one scatter->cluster cycle
 const CLUSTER_COUNT = 5
 
-export default function AnalysisLoader({ ticketCount = 0 }) {
+export default function AnalysisLoader({ ticketCount = 0, sourceName = null }) {
   const canvasRef = useRef(null)
   const [phaseIdx, setPhaseIdx] = useState(0)
 
@@ -206,6 +206,12 @@ export default function AnalysisLoader({ ticketCount = 0 }) {
   return (
     <div className="analysis-loader">
       <canvas ref={canvasRef} className="analysis-loader-canvas" />
+      {sourceName && (
+        <div className="analysis-loader-source">
+          <span className="analysis-loader-source-label mono">analyzing</span>
+          <span className="analysis-loader-source-name">{sourceName}</span>
+        </div>
+      )}
       <div className="analysis-loader-status mono">
         <span className="analysis-loader-phase" key={phaseIdx}>
           {PHASES[phaseIdx]}
@@ -213,8 +219,8 @@ export default function AnalysisLoader({ ticketCount = 0 }) {
         <span className="analysis-loader-caret" />
       </div>
       <p className="analysis-loader-hint">
-        {ticketCount} tickets resolving into signal — move your cursor through
-        the noise, click to send a pulse
+        {ticketCount} tickets{sourceName ? ` from ${sourceName}` : ''} resolving
+        into signal. Move your cursor through the noise, click to send a pulse.
       </p>
     </div>
   )

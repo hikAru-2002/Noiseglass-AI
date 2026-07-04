@@ -120,6 +120,17 @@ export default function Dashboard() {
       })
   }, [analysis])
 
+  // most common company across tickets = the source being analyzed
+  const sourceLabel = useMemo(() => {
+    if (!tickets.length) return null
+    const counts = {}
+    for (const t of tickets) {
+      if (t.company) counts[t.company] = (counts[t.company] || 0) + 1
+    }
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
+    return top ? top[0] : null
+  }, [tickets])
+
   const filteredTickets = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
     if (!q) return tickets
@@ -165,7 +176,7 @@ export default function Dashboard() {
         </div>
         <div className="stat-divider" />
         <div className="stat">
-          <span className="stat-value">{noiseCount ?? '—'}</span>
+          <span className="stat-value">{noiseCount ?? '-'}</span>
           <span className="stat-label">filtered as noise</span>
         </div>
       </div>
@@ -215,7 +226,12 @@ export default function Dashboard() {
             <EmptyState onRun={runAnalysis} disabled={tickets.length === 0} />
           )}
 
-          {loading && <AnalysisLoader ticketCount={tickets.length} />}
+          {loading && (
+            <AnalysisLoader
+              ticketCount={tickets.length}
+              sourceName={sourceLabel}
+            />
+          )}
 
           {!loading && analysis && (
             <div className="signal-stack">

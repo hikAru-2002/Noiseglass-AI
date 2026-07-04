@@ -3,7 +3,7 @@ Pulls real Apple App Store customer reviews and normalizes them into the
 same ticket shape ingest.py produces:
   { id, created_at, customer_name, company, channel, subject, body }
 
-Uses Apple's public iTunes RSS feed — completely free, no auth, no rate
+Uses Apple's public iTunes RSS feed: completely free, no auth, no rate
 limit worth worrying about. Works for any iOS app by name or numeric ID.
 """
 
