@@ -80,16 +80,11 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="topbar-left">
-          <div className="wordmark">
-            <span className="wordmark-dot" />
-            SIGNAL
-          </div>
-          <span className="topbar-sub">support trend intelligence for Flowline</span>
+          <div className="wordmark-mark" />
+          <span className="wordmark-text">Signal</span>
+          <span className="topbar-sub">support trend intelligence</span>
         </div>
         <div className="topbar-right">
-          <span className="ticket-total">
-            <span className="mono">{totalCount}</span> tickets / 4 weeks
-          </span>
           <GithubSourcePicker apiBase={API_BASE} onLoaded={handleGithubLoaded} />
           <button
             className="run-btn"
@@ -101,6 +96,23 @@ export default function App() {
         </div>
       </header>
 
+      <div className="stats-row">
+        <div className="stat">
+          <span className="stat-value">{totalCount}</span>
+          <span className="stat-label">tickets pulled</span>
+        </div>
+        <div className="stat-divider" />
+        <div className="stat">
+          <span className="stat-value">{sortedClusters.length}</span>
+          <span className="stat-label">clustered signals</span>
+        </div>
+        <div className="stat-divider" />
+        <div className="stat">
+          <span className="stat-value">{noiseCount ?? '—'}</span>
+          <span className="stat-label">filtered as noise</span>
+        </div>
+      </div>
+
       {error && (
         <div className="error-banner">
           {error}
@@ -110,7 +122,7 @@ export default function App() {
       <main className="main-grid">
         <section className="stream-panel">
           <div className="panel-label">
-            <span className="eyebrow">INCOMING</span>
+            <span className="eyebrow">Incoming</span>
             <span className="panel-label-sub">raw tickets, unsorted</span>
           </div>
           <IncomingStream tickets={tickets} loading={loading} />
@@ -118,7 +130,7 @@ export default function App() {
 
         <section className="signal-panel">
           <div className="panel-label">
-            <span className="eyebrow">SIGNAL</span>
+            <span className="eyebrow">Signal</span>
             <span className="panel-label-sub">
               {analysis
                 ? `${sortedClusters.length} issues worth a product team's attention`
@@ -138,28 +150,20 @@ export default function App() {
           )}
 
           {!loading && analysis && (
-            <>
-              <div className="signal-stack">
-                {sortedClusters.map((c) => (
-                  <SignalCard
-                    key={c.category}
-                    cluster={c}
-                    expanded={expandedCategory === c.category}
-                    onToggle={() =>
-                      setExpandedCategory(
-                        expandedCategory === c.category ? null : c.category
-                      )
-                    }
-                  />
-                ))}
-              </div>
-              {noiseCount !== null && (
-                <div className="noise-footer">
-                  <span className="mono">{noiseCount}</span> tickets filtered as noise
-                  (vague, off-topic, or non-actionable), not shown above
-                </div>
-              )}
-            </>
+            <div className="signal-stack">
+              {sortedClusters.map((c) => (
+                <SignalCard
+                  key={c.category}
+                  cluster={c}
+                  expanded={expandedCategory === c.category}
+                  onToggle={() =>
+                    setExpandedCategory(
+                      expandedCategory === c.category ? null : c.category
+                    )
+                  }
+                />
+              ))}
+            </div>
           )}
         </section>
       </main>
