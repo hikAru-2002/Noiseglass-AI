@@ -13,7 +13,7 @@ import sys
 from datetime import datetime, timezone
 
 from engine import run_full_analysis
-from persistence import load_active_tickets, save_analysis_run
+from persistence import load_active_tickets, save_analysis_run, get_active_source
 
 
 def main() -> int:
@@ -28,7 +28,7 @@ def main() -> int:
     print(f"[cron] analyzing {len(tickets)} active tickets...", flush=True)
     result = run_full_analysis(tickets)
 
-    run_id = save_analysis_run(tickets, result)
+    run_id = save_analysis_run(tickets, result, source=get_active_source())
     elapsed = (datetime.now(timezone.utc) - started).total_seconds()
     print(
         f"[cron] run {run_id} saved: {result['total_tickets_analyzed']} tickets, "

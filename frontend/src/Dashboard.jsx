@@ -14,19 +14,31 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 // Derive a 4-tier rank from severity, trend momentum, and volume.
 // SEVERE = high severity that is also spiking; LOW = quiet and flat.
+// Momentum only counts when there was a real baseline last week: a brand-new
+// cluster with 1 ticket is unproven, not a spike. Volume floors stop tiny
+// clusters from ever showing as SEVERE.
 function rankCluster(c) {
   const base = { high: 3, medium: 2, low: 1 }[c.severity] ?? 1
-  const trend = c.trend_pct_vs_last_week ?? 0
+  const [thisWk = 0, lastWk = 0] = c.week_counts ?? []
   const vol = c.total_tickets ?? 0
   let score = base
-  if (trend >= 100) score += 1.5
-  else if (trend > 0) score += 0.75
+  if (lastWk > 0 && thisWk >= lastWk * 2) score += 1.5
+  else if (lastWk > 0 && thisWk > lastWk) score += 0.75
+  else if (lastWk === 0 && thisWk > 0) score += 0.25
   if (vol >= 6) score += 1
   else if (vol >= 3) score += 0.5
-  if (score >= 4.25) return { tier: 'severe', label: 'SEVERE', score }
-  if (score >= 3) return { tier: 'high', label: 'HIGH', score }
-  if (score >= 2) return { tier: 'moderate', label: 'MODERATE', score }
-  return { tier: 'low', label: 'LOW', score }
+
+  let tier
+  if (score >= 4.25) tier = 'severe'
+  else if (score >= 3) tier = 'high'
+  else if (score >= 2) tier = 'moderate'
+  else tier = 'low'
+
+  if (tier === 'severe' && vol < 3) tier = 'high'
+  if (tier === 'high' && vol < 2) tier = 'moderate'
+
+  const label = { severe: 'SEVERE', high: 'HIGH', moderate: 'MODERATE', low: 'LOW' }[tier]
+  return { tier, label, score }
 }
 
 export default function Dashboard() {

@@ -2,15 +2,36 @@ import { useState } from 'react'
 
 const FALLBACK_LABEL = { high: 'HIGH', medium: 'MODERATE', low: 'LOW' }
 
-function TrendBadge({ pct }) {
-  if (pct === undefined || pct === null) return null
-  const rising = pct > 0
-  const flat = pct === 0
-  return (
-    <span className="trend-badge mono">
-      {rising ? '+' : flat ? '' : '-'}{Math.abs(pct).toFixed(0)}%
-    </span>
-  )
+// Percentages mislead at low volume (+100% can mean 0 -> 1 ticket), so the
+// badge shows the actual week-over-week movement in plain numbers.
+function TrendBadge({ weekCounts }) {
+  if (!weekCounts?.length) return null
+  const [thisWk, lastWk] = weekCounts
+  if (lastWk === 0 && thisWk > 0) {
+    return (
+      <span className="trend-badge trend-badge-new mono">
+        new · {thisWk} this wk
+      </span>
+    )
+  }
+  if (thisWk === 0 && lastWk === 0) {
+    return <span className="trend-badge mono">quiet · older reports</span>
+  }
+  if (thisWk > lastWk) {
+    return (
+      <span className="trend-badge trend-badge-up mono">
+        ▲ {lastWk} → {thisWk} wk/wk
+      </span>
+    )
+  }
+  if (thisWk < lastWk) {
+    return (
+      <span className="trend-badge trend-badge-down mono">
+        ▼ {lastWk} → {thisWk} wk/wk
+      </span>
+    )
+  }
+  return <span className="trend-badge mono">= steady at {thisWk}/wk</span>
 }
 
 function categoryToTitle(slug) {
@@ -152,7 +173,7 @@ export default function SignalCard({ cluster, expanded, onToggle, onSelectTicket
         <div className="signal-card-category">{categoryToTitle(cluster.category)}</div>
         <p className="signal-headline">{cluster.headline}</p>
         <div className="signal-card-header-bottom">
-          <TrendBadge pct={cluster.trend_pct_vs_last_week} />
+          <TrendBadge weekCounts={cluster.week_counts} />
           <span className="chevron">{expanded ? '−' : '+'}</span>
         </div>
       </button>

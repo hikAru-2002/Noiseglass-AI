@@ -12,6 +12,24 @@ function formatRunDate(iso) {
   })
 }
 
+const SOURCE_NAMES = {
+  github: 'GitHub',
+  appstore: 'App Store',
+  reddit: 'Reddit',
+  zendesk: 'Zendesk',
+  upload: 'Uploaded',
+  synthetic: 'Demo data',
+}
+
+function formatSource(source) {
+  if (!source) return 'Unknown source'
+  const sep = source.indexOf(':')
+  const kind = sep === -1 ? source : source.slice(0, sep)
+  const detail = sep === -1 ? '' : source.slice(sep + 1)
+  const name = SOURCE_NAMES[kind] || kind
+  return detail ? `${name} · ${detail}` : name
+}
+
 export default function RunHistory({ apiBase, refreshToken }) {
   const [runs, setRuns] = useState([])
 
@@ -40,10 +58,10 @@ export default function RunHistory({ apiBase, refreshToken }) {
       <span className="run-history-label mono">Run history</span>
       <div className="run-history-strip">
         {runs.map((r) => (
-          <div className="run-chip" key={r.id} title={r.generated_at}>
-            <span className="run-chip-date mono">{formatRunDate(r.generated_at)}</span>
+          <div className="run-chip" key={r.id} title={`${formatSource(r.source)} — ${r.generated_at}`}>
+            <span className="run-chip-source">{formatSource(r.source)}</span>
             <span className="run-chip-stats mono">
-              {r.total_tickets_analyzed} tix · {r.cluster_count} signals
+              {formatRunDate(r.generated_at)} · {r.total_tickets_analyzed} tix · {r.cluster_count} signals
             </span>
           </div>
         ))}

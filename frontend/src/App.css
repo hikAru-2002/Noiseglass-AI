@@ -301,6 +301,20 @@ input {
   color: var(--text-secondary);
 }
 
+.run-chip-source {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.run-chip:first-child .run-chip-source {
+  color: var(--text-primary);
+}
+
 .run-chip-stats {
   font-size: 10px;
   color: var(--text-faint);
@@ -565,6 +579,21 @@ input {
   border-radius: 99px;
   padding: 2px 8px;
   background: var(--bg);
+}
+
+.trend-badge-up {
+  color: #ff6b61;
+  border-color: rgba(255, 69, 58, 0.3);
+}
+
+.trend-badge-down {
+  color: #7dd487;
+  border-color: rgba(48, 209, 88, 0.25);
+}
+
+.trend-badge-new {
+  color: #ffdf6b;
+  border-color: rgba(255, 214, 10, 0.25);
 }
 
 .chevron {

@@ -1,13 +1,14 @@
 from database import SessionLocal
 from models import AnalysisRun, Ticket, ClusterSummary, ActiveTicket
 
-def save_analysis_run(tickets: list[dict], result: dict) -> int:
+def save_analysis_run(tickets: list[dict], result: dict, source: str | None = None) -> int:
     """Persist a completed analysis run to Postgres. Returns the new run's id."""
     db = SessionLocal()
     try:
         run = AnalysisRun(
             total_tickets_analyzed=result["total_tickets_analyzed"],
             noise_filtered_count=result["noise_filtered_count"],
+            source=source,
         )
         db.add(run)
         db.flush()  # assigns run.id before we use it below
@@ -72,6 +73,7 @@ def list_runs(limit: int = 20) -> list[dict]:
                 "total_tickets_analyzed": r.total_tickets_analyzed,
                 "noise_filtered_count": r.noise_filtered_count,
                 "cluster_count": len(r.clusters),
+                "source": r.source,
             }
             for r in rows
         ]

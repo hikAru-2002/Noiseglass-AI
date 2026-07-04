@@ -11,6 +11,7 @@ class AnalysisRun(Base):
     generated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     total_tickets_analyzed = Column(Integer)
     noise_filtered_count = Column(Integer)
+    source = Column(String, nullable=True)  # e.g. "github:n8n-io/n8n", "appstore:Clash of Clans"
 
     tickets = relationship("Ticket", back_populates="run", cascade="all, delete-orphan")
     clusters = relationship("ClusterSummary", back_populates="run", cascade="all, delete-orphan")

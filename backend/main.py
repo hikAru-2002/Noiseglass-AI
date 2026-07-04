@@ -121,7 +121,7 @@ def analyze():
     ANALYSIS_CACHE_PATH.write_text(json.dumps(result, indent=2))
 
     try:
-        run_id = save_analysis_run(tickets, result)
+        run_id = save_analysis_run(tickets, result, source=get_active_source())
         result["db_run_id"] = run_id
     except Exception as e:
         print(f"Warning: failed to save analysis run to database: {e}", flush=True)
