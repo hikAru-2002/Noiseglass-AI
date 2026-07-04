@@ -30,6 +30,14 @@ from ingest import parse_csv_tickets, parse_pasted_tickets
 from persistence import save_analysis_run, load_active_tickets, save_active_tickets
 from github_ingest import fetch_github_issues
 
+# Local dev on SQLite has no Alembic history — create tables directly.
+# On Railway (Postgres) the schema is managed by Alembic migrations.
+from database import engine, IS_SQLITE, Base
+import models  # noqa: F401  (registers models on Base.metadata)
+
+if IS_SQLITE:
+    Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(title="Triage API")
 

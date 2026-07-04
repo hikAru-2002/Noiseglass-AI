@@ -9,14 +9,14 @@ function timeAgo(isoString) {
   return `${weeks}w ago`
 }
 
-export default function IncomingStream({ tickets, loading }) {
+export default function IncomingStream({ tickets, loading, onSelect, searching }) {
   const sorted = [...tickets].sort(
     (a, b) => new Date(b.created_at) - new Date(a.created_at)
   )
   return (
     <div className={`stream-list ${loading ? 'stream-list-resolving' : ''}`}>
       {sorted.map((t) => (
-        <div className="stream-item" key={t.id}>
+        <div className="stream-item" key={t.id} onClick={() => onSelect(t)}>
           <div className="stream-item-top">
             <span className="channel-tag mono">{t.channel}</span>
             <span className="stream-item-time mono">{timeAgo(t.created_at)}</span>
@@ -27,6 +27,13 @@ export default function IncomingStream({ tickets, loading }) {
           </div>
         </div>
       ))}
+      {sorted.length === 0 && (
+        <div className="stream-empty">
+          {searching
+            ? 'No tickets match your search.'
+            : 'No tickets yet. Load a source to get started.'}
+        </div>
+      )}
     </div>
   )
 }

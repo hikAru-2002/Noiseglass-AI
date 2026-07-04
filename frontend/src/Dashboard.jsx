@@ -1,9 +1,11 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import './App.css'
 import SignalCard from './components/SignalCard.jsx'
 import IncomingStream from './components/IncomingStream.jsx'
 import EmptyState from './components/EmptyState.jsx'
 import GithubSourcePicker from './components/GithubSourcePicker.jsx'
+import TicketDetailPanel from './components/TicketDetailPanel.jsx'
+import AnalysisLoader from './components/AnalysisLoader.jsx'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -13,10 +15,35 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [expandedCategory, setExpandedCategory] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedTicket, setSelectedTicket] = useState(null)
+  const searchInputRef = useRef(null)
 
   useEffect(() => {
     fetchTickets()
     fetchCachedAnalysis()
+  }, [])
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === '/') {
+        const tag = e.target.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return
+        e.preventDefault()
+        searchInputRef.current?.focus()
+      } else if (e.key === 'Escape') {
+        setSelectedTicket((prev) => {
+          if (prev) return null
+          // no panel open: blur search instead
+          if (document.activeElement === searchInputRef.current) {
+            searchInputRef.current.blur()
+          }
+          return prev
+        })
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
   async function fetchTickets() {
@@ -76,6 +103,16 @@ export default function Dashboard() {
     })
   }, [analysis])
 
+  const filteredTickets = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return tickets
+    return tickets.filter((t) =>
+      [t.subject, t.body, t.customer_name, t.company, t.channel, String(t.id)]
+        .filter(Boolean)
+        .some((field) => field.toLowerCase().includes(q))
+    )
+  }, [tickets, searchQuery])
+
   return (
     <div className="app">
       <header className="topbar">
@@ -125,7 +162,23 @@ export default function Dashboard() {
             <span className="eyebrow">Incoming</span>
             <span className="panel-label-sub">raw tickets, unsorted</span>
           </div>
-          <IncomingStream tickets={tickets} loading={loading} />
+          <div className="stream-search">
+            <input
+              ref={searchInputRef}
+              className="stream-search-input mono"
+              type="text"
+              placeholder="Search tickets..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <span className="stream-search-hint mono">/</span>
+          </div>
+          <IncomingStream
+            tickets={filteredTickets}
+            loading={loading}
+            onSelect={setSelectedTicket}
+            searching={searchQuery.trim().length > 0}
+          />
         </section>
 
         <section className="signal-panel">
@@ -142,12 +195,7 @@ export default function Dashboard() {
             <EmptyState onRun={runAnalysis} disabled={tickets.length === 0} />
           )}
 
-          {loading && (
-            <div className="loading-state">
-              <div className="loading-pulse" />
-              <p>Reading {tickets.length} tickets, clustering by underlying issue, and writing the brief...</p>
-            </div>
-          )}
+          {loading && <AnalysisLoader ticketCount={tickets.length} />}
 
           {!loading && analysis && (
             <div className="signal-stack">
@@ -167,6 +215,11 @@ export default function Dashboard() {
           )}
         </section>
       </main>
+
+      <TicketDetailPanel
+        ticket={selectedTicket}
+        onClose={() => setSelectedTicket(null)}
+      />
     </div>
   )
 }

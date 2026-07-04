@@ -38,17 +38,29 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
 
       {open && (
         <div className="github-picker-panel">
-          <input
-            value={owner}
-            onChange={(e) => setOwner(e.target.value)}
-            placeholder="owner"
-          />
-          <input
-            value={repo}
-            onChange={(e) => setRepo(e.target.value)}
-            placeholder="repo"
-          />
-          <button onClick={handleFetch} disabled={loading}>
+          <span className="github-picker-label">github source</span>
+          <div className="github-picker-fields mono">
+            <input
+              className="github-picker-input"
+              value={owner}
+              onChange={(e) => setOwner(e.target.value)}
+              placeholder="owner"
+              spellCheck={false}
+            />
+            <span className="github-picker-slash">/</span>
+            <input
+              className="github-picker-input"
+              value={repo}
+              onChange={(e) => setRepo(e.target.value)}
+              placeholder="repo"
+              spellCheck={false}
+            />
+          </div>
+          <button
+            className="github-picker-fetch"
+            onClick={handleFetch}
+            disabled={loading}
+          >
             {loading ? 'Fetching...' : 'Fetch issues'}
           </button>
           {error && <div className="github-picker-error">{error}</div>}

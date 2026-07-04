@@ -25,7 +25,10 @@ export default function SignalCard({ cluster, expanded, onToggle }) {
     <div className={`signal-card ${expanded ? 'signal-card-expanded' : ''}`}>
       <button className="signal-card-header" onClick={onToggle}>
         <div className="signal-card-header-top">
-          <span className="signal-card-severity mono">{SEVERITY_LABEL[cluster.severity] || 'low'}</span>
+          <span className={`signal-card-severity mono severity-${cluster.severity || 'low'}`}>
+            <span className="severity-dot" />
+            {SEVERITY_LABEL[cluster.severity] || 'low'}
+          </span>
           <span className="ticket-count mono">{cluster.total_tickets}</span>
         </div>
         <div className="signal-card-category">{categoryToTitle(cluster.category)}</div>
