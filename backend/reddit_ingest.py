@@ -3,16 +3,54 @@ Pulls real Reddit posts mentioning a product and normalizes them into the
 same ticket shape ingest.py produces:
   { id, created_at, customer_name, company, channel, subject, body }
 
-Uses Reddit's public JSON API. No auth needed, just a descriptive
-User-Agent. Optionally scoped to a single subreddit (e.g. the product's
-own community, where the richest feedback lives).
+Two access paths:
+  1. OAuth (preferred): if REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET are set,
+     authenticate with Reddit's free application-only OAuth flow. This works
+     from cloud/datacenter IPs (Railway, etc.), which Reddit otherwise blocks.
+  2. Public JSON fallback: works from residential IPs (local dev), but
+     cloud providers usually get 403 "Blocked".
+
+To set up OAuth (free, 2 minutes):
+  - Visit https://www.reddit.com/prefs/apps and create an app of type "script"
+  - Set REDDIT_CLIENT_ID (under the app name) and REDDIT_CLIENT_SECRET in env
 """
 
+import os
 from datetime import datetime, timezone
 
 import requests
 
-HEADERS = {"User-Agent": "triage-signal/1.0 (support trend analyzer)"}
+USER_AGENT = "noiseglass/1.0 (support trend analyzer; contact via github)"
+HEADERS = {"User-Agent": USER_AGENT}
+
+_token_cache = {"token": None, "expires_at": 0.0}
+
+
+def _get_oauth_token() -> str | None:
+    """Application-only OAuth token, cached until shortly before expiry.
+    Returns None when credentials are not configured."""
+    client_id = os.environ.get("REDDIT_CLIENT_ID", "").strip()
+    client_secret = os.environ.get("REDDIT_CLIENT_SECRET", "").strip()
+    if not (client_id and client_secret):
+        return None
+
+    now = datetime.now(timezone.utc).timestamp()
+    if _token_cache["token"] and now < _token_cache["expires_at"]:
+        return _token_cache["token"]
+
+    resp = requests.post(
+        "https://www.reddit.com/api/v1/access_token",
+        auth=(client_id, client_secret),
+        data={"grant_type": "client_credentials"},
+        headers=HEADERS,
+        timeout=15,
+    )
+    resp.raise_for_status()
+    payload = resp.json()
+    _token_cache["token"] = payload["access_token"]
+    # refresh 60s early to avoid using a token that expires mid-request
+    _token_cache["expires_at"] = now + payload.get("expires_in", 3600) - 60
+    return _token_cache["token"]
 
 
 def fetch_reddit_posts(
@@ -24,26 +62,38 @@ def fetch_reddit_posts(
     Noiseglass's ticket shape. Only text posts are kept, since link posts
     carry no feedback to analyze."""
     subreddit = subreddit.strip().lstrip("r/").strip("/")
-    if subreddit:
-        url = f"https://www.reddit.com/r/{subreddit}/search.json"
-        params = {
-            "q": query,
-            "restrict_sr": "1",
-            "sort": "new",
-            "t": "month",
-            "limit": min(limit, 100),
-        }
-    else:
-        url = "https://www.reddit.com/search.json"
-        params = {
-            "q": query,
-            "sort": "new",
-            "t": "month",
-            "limit": min(limit, 100),
-        }
 
-    resp = requests.get(url, params=params, headers=HEADERS, timeout=15)
-    resp.raise_for_status()
+    params = {
+        "q": query,
+        "sort": "new",
+        "t": "month",
+        "limit": min(limit, 100),
+    }
+    if subreddit:
+        params["restrict_sr"] = "1"
+
+    token = _get_oauth_token()
+    if token:
+        base = "https://oauth.reddit.com"
+        headers = {**HEADERS, "Authorization": f"Bearer {token}"}
+    else:
+        base = "https://www.reddit.com"
+        headers = HEADERS
+
+    path = f"/r/{subreddit}/search.json" if subreddit else "/search.json"
+
+    try:
+        resp = requests.get(base + path, params=params, headers=headers, timeout=15)
+        resp.raise_for_status()
+    except requests.HTTPError as e:
+        if e.response is not None and e.response.status_code == 403 and not token:
+            raise RuntimeError(
+                "Reddit blocked this server's IP (it blocks most cloud hosts). "
+                "Fix: create a free Reddit app at reddit.com/prefs/apps and set "
+                "REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET in the environment."
+            ) from e
+        raise
+
     children = resp.json().get("data", {}).get("children", [])
 
     tickets = []
