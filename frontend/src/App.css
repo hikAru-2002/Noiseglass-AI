@@ -384,66 +384,61 @@ input {
   align-items: center;
 }
 
-.signal-card-severity {
+.severity-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   font-size: 10px;
-  color: var(--text-muted);
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-}
-
-.severity-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 5px;
+  border: 0.5px solid;
 }
 
 .severity-severe {
-  color: var(--text-primary);
+  color: #ff6b61;
+  background: rgba(255, 69, 58, 0.1);
+  border-color: rgba(255, 69, 58, 0.35);
+  animation: severe-glow 2s var(--ease) infinite;
 }
 
-.severity-severe .severity-dot {
-  background: var(--text-primary);
-  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
-  animation: severe-ring 1.8s var(--ease) infinite;
-}
-
-@keyframes severe-ring {
-  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.35); }
-  70% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-}
-
-.severity-high .severity-dot {
-  background: var(--text-primary);
+@keyframes severe-glow {
+  0%, 100% { background: rgba(255, 69, 58, 0.1); }
+  50% { background: rgba(255, 69, 58, 0.2); }
 }
 
 .severity-high {
-  color: var(--text-secondary);
+  color: #ffab4a;
+  background: rgba(255, 159, 10, 0.1);
+  border-color: rgba(255, 159, 10, 0.32);
 }
 
-.severity-moderate .severity-dot,
-.severity-medium .severity-dot {
-  background: rgba(255, 255, 255, 0.45);
+.severity-moderate,
+.severity-medium {
+  color: #ffdf6b;
+  background: rgba(255, 214, 10, 0.08);
+  border-color: rgba(255, 214, 10, 0.28);
 }
 
-.severity-low .severity-dot {
-  background: transparent;
-  border: 1px solid var(--text-muted);
+.severity-low {
+  color: #7dd487;
+  background: rgba(48, 209, 88, 0.08);
+  border-color: rgba(48, 209, 88, 0.25);
 }
 
 .ticket-count {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
-.ticket-count::after {
-  content: ' tkts';
-  font-size: 10px;
-  color: var(--text-faint);
+.ticket-count-unit {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
 }
 
 .signal-card-category {

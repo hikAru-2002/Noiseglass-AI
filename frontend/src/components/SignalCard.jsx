@@ -26,14 +26,18 @@ export default function SignalCard({ cluster, expanded, onToggle }) {
       <button className="signal-card-header" onClick={onToggle}>
         <div className="signal-card-header-top">
           <span
-            className={`signal-card-severity mono severity-${
+            className={`severity-badge mono severity-${
               cluster.rank?.tier || cluster.severity || 'low'
             }`}
           >
-            <span className="severity-dot" />
             {cluster.rank?.label || FALLBACK_LABEL[cluster.severity] || 'LOW'}
           </span>
-          <span className="ticket-count mono">{cluster.total_tickets}</span>
+          <span className="ticket-count mono">
+            {cluster.total_tickets}
+            <span className="ticket-count-unit">
+              {cluster.total_tickets === 1 ? ' ticket' : ' tickets'}
+            </span>
+          </span>
         </div>
         <div className="signal-card-category">{categoryToTitle(cluster.category)}</div>
         <p className="signal-headline">{cluster.headline}</p>

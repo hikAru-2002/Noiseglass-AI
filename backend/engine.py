@@ -20,12 +20,16 @@ import json
 import os
 import re
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import Optional
 
 import anthropic
 
-MODEL = "claude-sonnet-4-6"
+# Right model for the job: Haiku is fast + cheap and plenty for structured
+# classification; Sonnet writes the human-facing brief where quality shows.
+MODEL_CLASSIFY = "claude-haiku-4-5"
+MODEL_SUMMARIZE = "claude-sonnet-4-6"
 
 client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
 
@@ -64,26 +68,31 @@ def _strip_json_fences(text: str) -> str:
     return text.strip()
 
 
+def _classify_batch(batch: list[dict]) -> list[dict]:
+    payload = [
+        {"id": t["id"], "subject": t["subject"], "body": t["body"][:600]}
+        for t in batch
+    ]
+    resp = client.messages.create(
+        model=MODEL_CLASSIFY,
+        max_tokens=4000,
+        system=CLASSIFY_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": json.dumps(payload)}],
+    )
+    raw = "".join(block.text for block in resp.content if block.type == "text")
+    try:
+        return json.loads(_strip_json_fences(raw))
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"Failed to parse classification response: {raw[:500]}") from e
+
+
 def classify_tickets(tickets: list[dict], batch_size: int = 20) -> list[dict]:
-    """Pass 1: classify tickets in batches via the Claude API."""
+    """Pass 1: classify tickets in parallel batches via the Claude API."""
+    batches = [tickets[i : i + batch_size] for i in range(0, len(tickets), batch_size)]
     results = []
-    for i in range(0, len(tickets), batch_size):
-        batch = tickets[i : i + batch_size]
-        payload = [
-            {"id": t["id"], "subject": t["subject"], "body": t["body"]} for t in batch
-        ]
-        resp = client.messages.create(
-            model=MODEL,
-            max_tokens=4000,
-            system=CLASSIFY_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": json.dumps(payload)}],
-        )
-        raw = "".join(block.text for block in resp.content if block.type == "text")
-        try:
-            parsed = json.loads(_strip_json_fences(raw))
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Failed to parse classification response: {raw[:500]}") from e
-        results.extend(parsed)
+    with ThreadPoolExecutor(max_workers=min(len(batches), 6)) as pool:
+        for parsed in pool.map(_classify_batch, batches):
+            results.extend(parsed)
     return results
 
 
@@ -161,7 +170,7 @@ def summarize_clusters(clusters: list[dict], min_volume: int = 1) -> list[dict]:
     ]
 
     resp = client.messages.create(
-        model=MODEL,
+        model=MODEL_SUMMARIZE,
         max_tokens=4000,
         system=SUMMARIZE_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": json.dumps(payload)}],
