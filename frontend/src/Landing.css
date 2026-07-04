@@ -4,6 +4,37 @@
   color: var(--text-primary);
   font-family: var(--font-sans);
   overflow-x: hidden;
+  position: relative;
+}
+
+.ambient-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.landing > *:not(.ambient-field) {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-masthead {
+  font-size: clamp(64px, 13vw, 150px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  margin: 8px 0 28px;
+  background: linear-gradient(
+    180deg,
+    var(--text-primary) 30%,
+    rgba(255, 255, 255, 0.25) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  user-select: none;
+  animation: fadeUp 0.7s ease both;
 }
 
 .landing-nav {
@@ -49,12 +80,13 @@
 }
 
 .hero-title {
-  font-size: 52px;
+  font-size: 34px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  line-height: 1.1;
-  margin: 0 0 20px;
-  animation: fadeUp 0.6s ease both;
+  line-height: 1.15;
+  margin: 0 0 18px;
+  color: var(--text-secondary);
+  animation: fadeUp 0.6s ease 0.08s both;
 }
 
 .hero-sub {

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
+import AmbientField from './components/AmbientField.jsx'
 import './Landing.css'
 
 function useRevealOnScroll() {
@@ -50,10 +51,12 @@ export default function Landing() {
 
   return (
     <div className="landing">
+      <AmbientField />
+
       <nav className="landing-nav">
         <div className="landing-wordmark">
           <div className="wordmark-mark" />
-          <span>Signal</span>
+          <span>Triage</span>
         </div>
         <button className="nav-launch-btn" onClick={() => navigate('/app')}>
           Launch console
@@ -61,6 +64,9 @@ export default function Landing() {
       </nav>
 
       <section className="hero">
+        <div className="hero-masthead" aria-label="Triage">
+          TRIAGE
+        </div>
         <h1 className="hero-title">
           Cut through the noise.<br />See the real signal.
         </h1>
