@@ -29,6 +29,8 @@ from engine import run_full_analysis
 from ingest import parse_csv_tickets, parse_pasted_tickets
 from persistence import save_analysis_run, load_active_tickets, save_active_tickets
 from github_ingest import fetch_github_issues
+from zendesk_ingest import fetch_zendesk_tickets
+from appstore_ingest import fetch_appstore_reviews
 
 # Local dev on SQLite has no Alembic history — create tables directly.
 # On Railway (Postgres) the schema is managed by Alembic migrations.
@@ -151,6 +153,53 @@ def fetch_github_issues_endpoint(owner: str = Form(...), repo: str = Form(...), 
         raise HTTPException(status_code=400, detail="No usable issues found in that repo.")
     _replace_active_tickets(tickets, source="github")
     return {"count": len(tickets), "source": f"{owner}/{repo}"}
+
+
+@app.post("/api/fetch-zendesk-tickets")
+def fetch_zendesk_tickets_endpoint(
+    subdomain: str = Form(""),
+    email: str = Form(""),
+    api_token: str = Form(""),
+    limit: int = Form(100),
+):
+    # Fall back to env credentials so a deployed instance can be
+    # pre-configured without users typing tokens into the UI.
+    subdomain = subdomain.strip() or os.environ.get("ZENDESK_SUBDOMAIN", "")
+    email = email.strip() or os.environ.get("ZENDESK_EMAIL", "")
+    api_token = api_token.strip() or os.environ.get("ZENDESK_API_TOKEN", "")
+
+    if not (subdomain and email and api_token):
+        raise HTTPException(
+            status_code=400,
+            detail="Zendesk subdomain, email, and API token are required (via form or ZENDESK_* env vars).",
+        )
+
+    try:
+        tickets = fetch_zendesk_tickets(subdomain, email, api_token, limit)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch from Zendesk: {e}")
+    if not tickets:
+        raise HTTPException(status_code=400, detail="No usable tickets found in that Zendesk instance.")
+    _replace_active_tickets(tickets, source="zendesk")
+    return {"count": len(tickets), "source": f"{subdomain}.zendesk.com"}
+
+
+@app.post("/api/fetch-appstore-reviews")
+def fetch_appstore_reviews_endpoint(
+    app_term: str = Form(...),
+    country: str = Form("us"),
+    limit: int = Form(100),
+):
+    try:
+        tickets = fetch_appstore_reviews(app_term, country, limit)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch App Store reviews: {e}")
+    if not tickets:
+        raise HTTPException(status_code=400, detail="No reviews found for that app.")
+    _replace_active_tickets(tickets, source="appstore")
+    return {"count": len(tickets), "source": f"App Store: {app_term}"}
 
 
 @app.get("/api/health")

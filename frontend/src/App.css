@@ -819,6 +819,48 @@ input {
   letter-spacing: 0.08em;
 }
 
+.source-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.source-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 0;
+  border-radius: 4px;
+}
+
+.source-tab:hover {
+  color: var(--text-secondary);
+}
+
+.source-tab-active {
+  background: var(--surface-3);
+  color: var(--text-primary);
+}
+
+.zendesk-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zendesk-note {
+  font-size: 10px;
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+
 .github-picker-fields {
   display: flex;
   align-items: center;
