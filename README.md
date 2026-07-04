@@ -1,12 +1,12 @@
-# Triage, Support Trend Intelligence for Flowline
+# Noiseglass
 
-Triage is an AI-powered support intelligence platform that transforms noisy customer support tickets into ranked, actionable product insights. It uses the Claude API to classify and summarize support issues while relying on deterministic Python code to perform clustering and trend analysis, ensuring all numerical calculations remain accurate and reproducible.
+Noiseglass is an AI-powered support intelligence platform that transforms noisy customer support tickets into ranked, actionable product insights. It uses the Claude API to classify and summarize support issues while relying on deterministic Python code to perform clustering and trend analysis, ensuring all numerical calculations remain accurate and reproducible.
 
-Built as a portfolio project, Triage demonstrates how modern AI can automate support operations by identifying recurring customer problems, prioritizing emerging trends, and surfacing insights that product and engineering teams can immediately act on.
+Built as a portfolio project, Noiseglass demonstrates how modern AI can automate support operations by identifying recurring customer problems, prioritizing emerging trends, and surfacing insights that product and engineering teams can immediately act on.
 
 ## How it works
 
-1. **Ticket ingestion**: Triage can analyze both synthetic support datasets and real GitHub Issues collected through the GitHub REST API. This allows the application to demonstrate its workflow using realistic sample data while also supporting live repositories.
+1. **Ticket ingestion**: Noiseglass can analyze both synthetic support datasets and real GitHub Issues collected through the GitHub REST API. This allows the application to demonstrate its workflow using realistic sample data while also supporting live repositories.
 
 2. **Pass 1, AI classification**: Claude reads batches of incoming tickets and classifies each one into a normalized category while generating a concise issue summary. Batching minimizes API requests and improves processing efficiency.
 
