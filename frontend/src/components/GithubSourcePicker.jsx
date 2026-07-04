@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const SOURCES = ['github', 'app store', 'zendesk']
+const SOURCES = ['github', 'app store', 'reddit']
 
 export default function GithubSourcePicker({ apiBase, onLoaded }) {
   const [open, setOpen] = useState(false)
@@ -12,13 +12,12 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
   const [owner, setOwner] = useState('n8n-io')
   const [repo, setRepo] = useState('n8n')
 
-  // zendesk fields
-  const [subdomain, setSubdomain] = useState('')
-  const [email, setEmail] = useState('')
-  const [apiToken, setApiToken] = useState('')
-
   // app store fields
   const [appTerm, setAppTerm] = useState('')
+
+  // reddit fields
+  const [query, setQuery] = useState('')
+  const [subreddit, setSubreddit] = useState('')
 
   async function handleFetch() {
     setLoading(true)
@@ -32,13 +31,8 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
         endpoint = '/api/fetch-appstore-reviews'
         body = new URLSearchParams({ app_term: appTerm, limit: '100' })
       } else {
-        endpoint = '/api/fetch-zendesk-tickets'
-        body = new URLSearchParams({
-          subdomain,
-          email,
-          api_token: apiToken,
-          limit: '100',
-        })
+        endpoint = '/api/fetch-reddit-posts'
+        body = new URLSearchParams({ query, subreddit, limit: '100' })
       }
       const res = await fetch(`${apiBase}${endpoint}`, {
         method: 'POST',
@@ -102,7 +96,7 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
           )}
 
           {source === 'app store' && (
-            <div className="zendesk-fields">
+            <div className="source-fields">
               <input
                 className="github-picker-input mono"
                 value={appTerm}
@@ -110,41 +104,30 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
                 placeholder="app name, e.g. spotify"
                 spellCheck={false}
               />
-              <span className="zendesk-note">
+              <span className="source-note">
                 public reviews via Apple's RSS feed, no auth needed
               </span>
             </div>
           )}
 
-          {source === 'zendesk' && (
-            <div className="zendesk-fields">
-              <div className="github-picker-fields mono">
-                <input
-                  className="github-picker-input"
-                  value={subdomain}
-                  onChange={(e) => setSubdomain(e.target.value)}
-                  placeholder="subdomain"
-                  spellCheck={false}
-                />
-                <span className="github-picker-slash">.zendesk.com</span>
-              </div>
+          {source === 'reddit' && (
+            <div className="source-fields">
               <input
                 className="github-picker-input mono"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="agent email"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="search, e.g. notion sync"
                 spellCheck={false}
               />
               <input
                 className="github-picker-input mono"
-                type="password"
-                value={apiToken}
-                onChange={(e) => setApiToken(e.target.value)}
-                placeholder="api token"
+                value={subreddit}
+                onChange={(e) => setSubreddit(e.target.value)}
+                placeholder="subreddit (optional), e.g. Notion"
                 spellCheck={false}
               />
-              <span className="zendesk-note">
-                token stays on your backend, never stored
+              <span className="source-note">
+                real user posts from the last month, no auth needed
               </span>
             </div>
           )}

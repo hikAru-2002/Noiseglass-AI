@@ -88,6 +88,12 @@ body::after {
   padding: 28px 24px 64px;
 }
 
+/* keep console content above the ambient particle field */
+.app > *:not(.ambient-field) {
+  position: relative;
+  z-index: 1;
+}
+
 button {
   font-family: var(--font-sans);
   font-size: 13px;
@@ -186,7 +192,8 @@ input {
   background: var(--text-primary);
   color: var(--bg);
   border: none;
-  padding: 8px 16px;
+  padding: 11px 22px;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.01em;
 }
@@ -794,16 +801,17 @@ input {
 }
 
 .github-picker-toggle {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 0.5px solid var(--border-strong);
-  padding: 8px 14px;
-  font-size: 13px;
+  background: var(--text-primary);
+  color: var(--bg);
+  border: none;
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .github-picker-toggle:hover {
-  color: var(--text-primary);
-  border-color: var(--border-focus);
+  opacity: 0.85;
 }
 
 .github-picker-panel {
@@ -865,13 +873,13 @@ input {
   color: var(--text-primary);
 }
 
-.zendesk-fields {
+.source-fields {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.zendesk-note {
+.source-note {
   font-size: 10px;
   color: var(--text-faint);
   line-height: 1.4;

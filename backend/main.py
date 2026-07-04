@@ -31,6 +31,7 @@ from persistence import save_analysis_run, load_active_tickets, save_active_tick
 from github_ingest import fetch_github_issues
 from zendesk_ingest import fetch_zendesk_tickets
 from appstore_ingest import fetch_appstore_reviews
+from reddit_ingest import fetch_reddit_posts
 
 # Local dev on SQLite has no Alembic history, so create tables directly.
 # On Railway (Postgres) the schema is managed by Alembic migrations.
@@ -200,6 +201,26 @@ def fetch_appstore_reviews_endpoint(
         raise HTTPException(status_code=400, detail="No reviews found for that app.")
     _replace_active_tickets(tickets, source="appstore")
     return {"count": len(tickets), "source": f"App Store: {app_term}"}
+
+
+@app.post("/api/fetch-reddit-posts")
+def fetch_reddit_posts_endpoint(
+    query: str = Form(...),
+    subreddit: str = Form(""),
+    limit: int = Form(100),
+):
+    try:
+        tickets = fetch_reddit_posts(query, subreddit, limit)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch from Reddit: {e}")
+    if not tickets:
+        raise HTTPException(
+            status_code=400,
+            detail="No text posts found for that search. Try a broader query or a product subreddit.",
+        )
+    _replace_active_tickets(tickets, source="reddit")
+    scope = f"r/{subreddit}" if subreddit.strip() else "all of Reddit"
+    return {"count": len(tickets), "source": f"Reddit: '{query}' in {scope}"}
 
 
 @app.get("/api/health")

@@ -7,6 +7,7 @@ import EmptyState from './components/EmptyState.jsx'
 import GithubSourcePicker from './components/GithubSourcePicker.jsx'
 import TicketDetailPanel from './components/TicketDetailPanel.jsx'
 import AnalysisLoader from './components/AnalysisLoader.jsx'
+import AmbientField from './components/AmbientField.jsx'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -143,14 +144,15 @@ export default function Dashboard() {
 
   return (
     <div className="app">
+      <AmbientField />
       <header className="topbar">
         <div className="topbar-left">
           <Link to="/" className="back-link mono" title="Back to homepage">
             ←
           </Link>
           <div className="wordmark-mark" />
-          <span className="wordmark-text">Signal</span>
-          <span className="topbar-sub">support trend intelligence</span>
+          <span className="wordmark-text">Triage</span>
+          <span className="topbar-sub">Support Trend Intelligence</span>
         </div>
         <div className="topbar-right">
           <GithubSourcePicker apiBase={API_BASE} onLoaded={handleGithubLoaded} />
