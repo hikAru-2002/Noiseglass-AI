@@ -1,4 +1,4 @@
-# Noiseglass — Support Trend Intelligence
+# Noiseglass / Support Trend Intelligence
 
 **Live at [noiseglass.vercel.app](https://noiseglass.vercel.app)**
 
