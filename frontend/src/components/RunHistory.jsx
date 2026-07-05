@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { apiFetch } from '../api.js'
 
 function formatRunDate(iso) {
   if (!iso) return '?'
@@ -37,7 +38,7 @@ export default function RunHistory({ apiBase, refreshToken }) {
     let cancelled = false
     async function load() {
       try {
-        const res = await fetch(`${apiBase}/api/runs?limit=14`)
+        const res = await apiFetch(apiBase, '/api/runs?limit=14')
         if (!res.ok) return
         const data = await res.json()
         if (!cancelled) setRuns(data.runs || [])

@@ -20,6 +20,7 @@
 }
 
 .hero-masthead {
+  position: relative;
   font-size: clamp(44px, 8.2vw, 108px);
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -28,15 +29,57 @@
   background: linear-gradient(
     180deg,
     #ffffff 0%,
-    #d9d9de 45%,
-    #9a9aa1 75%,
-    #6e6e75 100%
+    #f0f0f4 40%,
+    #c9c9d1 70%,
+    #97979f 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   user-select: none;
   animation: fadeUp 0.7s ease both;
+  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.22))
+          drop-shadow(0 0 60px rgba(210, 220, 255, 0.14));
+}
+
+/* slow breathing glow, layered on after the entrance animation */
+@keyframes masthead-breathe {
+  0%, 100% {
+    filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.22))
+            drop-shadow(0 0 60px rgba(210, 220, 255, 0.14));
+  }
+  50% {
+    filter: drop-shadow(0 0 26px rgba(255, 255, 255, 0.34))
+            drop-shadow(0 0 90px rgba(210, 220, 255, 0.22));
+  }
+}
+
+.hero-masthead {
+  animation: fadeUp 0.7s ease both,
+             masthead-breathe 5s ease-in-out 0.8s infinite;
+}
+
+/* soft light source behind the hero so the glow has somewhere to live */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(900px, 90vw);
+  height: 420px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(190, 205, 255, 0.04) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+.hero {
+  position: relative;
 }
 
 .landing-nav {

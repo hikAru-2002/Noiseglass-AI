@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { apiFetch } from '../api.js'
 
 const SOURCES = ['github', 'app store', 'reddit']
 
@@ -34,7 +35,7 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
         endpoint = '/api/fetch-reddit-posts'
         body = new URLSearchParams({ query, subreddit, limit: '100' })
       }
-      const res = await fetch(`${apiBase}${endpoint}`, {
+      const res = await apiFetch(apiBase, endpoint, {
         method: 'POST',
         body,
       })

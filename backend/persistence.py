@@ -1,7 +1,17 @@
-from database import SessionLocal
-from models import AnalysisRun, Ticket, ClusterSummary, ActiveTicket
+from datetime import datetime, timezone
 
-def save_analysis_run(tickets: list[dict], result: dict, source: str | None = None) -> int:
+from database import SessionLocal
+from models import AnalysisRun, Ticket, ClusterSummary, ActiveTicket, AnalysisCache
+
+DEFAULT_WORKSPACE = "public"
+
+
+def save_analysis_run(
+    tickets: list[dict],
+    result: dict,
+    source: str | None = None,
+    workspace_id: str = DEFAULT_WORKSPACE,
+) -> int:
     """Persist a completed analysis run to Postgres. Returns the new run's id."""
     db = SessionLocal()
     try:
@@ -9,11 +19,11 @@ def save_analysis_run(tickets: list[dict], result: dict, source: str | None = No
             total_tickets_analyzed=result["total_tickets_analyzed"],
             noise_filtered_count=result["noise_filtered_count"],
             source=source,
+            workspace_id=workspace_id,
         )
         db.add(run)
         db.flush()  # assigns run.id before we use it below
 
-        cluster_categories = {c["category"] for c in result["actionable_clusters"]}
         ticket_meta = {}
         for cluster in result["actionable_clusters"]:
             for t in cluster.get("sample_tickets", []):
@@ -56,12 +66,14 @@ def save_analysis_run(tickets: list[dict], result: dict, source: str | None = No
     finally:
         db.close()
 
-def list_runs(limit: int = 20) -> list[dict]:
-    """Return recent analysis runs, newest first, for the history view."""
+
+def list_runs(limit: int = 20, workspace_id: str = DEFAULT_WORKSPACE) -> list[dict]:
+    """Return recent analysis runs for a workspace, newest first."""
     db = SessionLocal()
     try:
         rows = (
             db.query(AnalysisRun)
+            .filter(AnalysisRun.workspace_id == workspace_id)
             .order_by(AnalysisRun.generated_at.desc())
             .limit(limit)
             .all()
@@ -81,11 +93,15 @@ def list_runs(limit: int = 20) -> list[dict]:
         db.close()
 
 
-def load_active_tickets() -> list[dict]:
-    """Load the current active ticket set from Postgres."""
+def load_active_tickets(workspace_id: str = DEFAULT_WORKSPACE) -> list[dict]:
+    """Load a workspace's current active ticket set."""
     db = SessionLocal()
     try:
-        rows = db.query(ActiveTicket).all()
+        rows = (
+            db.query(ActiveTicket)
+            .filter(ActiveTicket.workspace_id == workspace_id)
+            .all()
+        )
         return [
             {
                 "id": r.id,
@@ -102,23 +118,34 @@ def load_active_tickets() -> list[dict]:
         db.close()
 
 
-def get_active_source() -> str | None:
-    """Return the source label of the current active ticket set, if any."""
+def get_active_source(workspace_id: str = DEFAULT_WORKSPACE) -> str | None:
+    """Return the source label of a workspace's active ticket set, if any."""
     db = SessionLocal()
     try:
-        row = db.query(ActiveTicket).first()
+        row = (
+            db.query(ActiveTicket)
+            .filter(ActiveTicket.workspace_id == workspace_id)
+            .first()
+        )
         return row.source if row else None
     finally:
         db.close()
 
 
-def save_active_tickets(tickets: list[dict], source: str = "synthetic"):
-    """Replace the active ticket set in Postgres with a new one."""
+def save_active_tickets(
+    tickets: list[dict],
+    source: str = "synthetic",
+    workspace_id: str = DEFAULT_WORKSPACE,
+):
+    """Replace one workspace's active ticket set. Other workspaces untouched."""
     db = SessionLocal()
     try:
-        db.query(ActiveTicket).delete()
+        db.query(ActiveTicket).filter(
+            ActiveTicket.workspace_id == workspace_id
+        ).delete()
         for t in tickets:
             db.add(ActiveTicket(
+                workspace_id=workspace_id,
                 id=t["id"],
                 created_at=t["created_at"],
                 customer_name=t["customer_name"],
@@ -129,5 +156,53 @@ def save_active_tickets(tickets: list[dict], source: str = "synthetic"):
                 source=source,
             ))
         db.commit()
+    finally:
+        db.close()
+
+
+def list_active_workspaces() -> list[str]:
+    """All workspace ids that currently hold an active ticket set."""
+    db = SessionLocal()
+    try:
+        rows = db.query(ActiveTicket.workspace_id).distinct().all()
+        return [r[0] for r in rows]
+    finally:
+        db.close()
+
+
+# ------------------------------------------------------------------
+# Analysis cache (per workspace, replaces the old on-disk JSON file)
+# ------------------------------------------------------------------
+
+def load_cached_analysis(workspace_id: str = DEFAULT_WORKSPACE) -> dict | None:
+    db = SessionLocal()
+    try:
+        row = db.get(AnalysisCache, workspace_id)
+        return row.payload if row else None
+    finally:
+        db.close()
+
+
+def save_cached_analysis(result: dict, workspace_id: str = DEFAULT_WORKSPACE):
+    db = SessionLocal()
+    try:
+        row = db.get(AnalysisCache, workspace_id)
+        if row:
+            row.payload = result
+            row.generated_at = datetime.now(timezone.utc)
+        else:
+            db.add(AnalysisCache(workspace_id=workspace_id, payload=result))
+        db.commit()
+    finally:
+        db.close()
+
+
+def clear_cached_analysis(workspace_id: str = DEFAULT_WORKSPACE):
+    db = SessionLocal()
+    try:
+        row = db.get(AnalysisCache, workspace_id)
+        if row:
+            db.delete(row)
+            db.commit()
     finally:
         db.close()

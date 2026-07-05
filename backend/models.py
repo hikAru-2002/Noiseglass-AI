@@ -12,6 +12,7 @@ class AnalysisRun(Base):
     total_tickets_analyzed = Column(Integer)
     noise_filtered_count = Column(Integer)
     source = Column(String, nullable=True)  # e.g. "github:n8n-io/n8n", "appstore:Clash of Clans"
+    workspace_id = Column(String, default="public", index=True)
 
     tickets = relationship("Ticket", back_populates="run", cascade="all, delete-orphan")
     clusters = relationship("ClusterSummary", back_populates="run", cascade="all, delete-orphan")
@@ -61,6 +62,7 @@ class ActiveTicket(Base):
     deletes all rows and inserts the new ones."""
     __tablename__ = "active_tickets"
 
+    workspace_id = Column(String, primary_key=True, default="public")
     id = Column(String, primary_key=True)
     created_at = Column(String)
     customer_name = Column(String)
@@ -69,3 +71,13 @@ class ActiveTicket(Base):
     subject = Column(String)
     body = Column(String)
     source = Column(String, default="synthetic")  # synthetic, github, upload, etc.
+
+
+class AnalysisCache(Base):
+    """Latest analysis result per workspace. Replaces the old on-disk JSON
+    cache, which broke on redeploys and was shared across all users."""
+    __tablename__ = "analysis_cache"
+
+    workspace_id = Column(String, primary_key=True)
+    generated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    payload = Column(JSON)

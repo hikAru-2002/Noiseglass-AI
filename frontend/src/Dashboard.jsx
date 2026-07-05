@@ -9,6 +9,7 @@ import TicketDetailPanel from './components/TicketDetailPanel.jsx'
 import AnalysisLoader from './components/AnalysisLoader.jsx'
 import AmbientField from './components/AmbientField.jsx'
 import RunHistory from './components/RunHistory.jsx'
+import { apiFetch } from './api.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -80,7 +81,7 @@ export default function Dashboard() {
 
   async function fetchTickets() {
     try {
-      const res = await fetch(`${API_BASE}/api/tickets`)
+      const res = await apiFetch(API_BASE, '/api/tickets')
       const data = await res.json()
       setTickets(data)
     } catch (e) {
@@ -95,7 +96,7 @@ export default function Dashboard() {
 
   async function fetchCachedAnalysis() {
     try {
-      const res = await fetch(`${API_BASE}/api/analysis`)
+      const res = await apiFetch(API_BASE, '/api/analysis')
       const data = await res.json()
       if (data.cached) setAnalysis(data)
     } catch (e) {
@@ -107,7 +108,7 @@ export default function Dashboard() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/api/analyze`, { method: 'POST' })
+      const res = await apiFetch(API_BASE, '/api/analyze', { method: 'POST' })
       if (!res.ok) {
         const errBody = await res.json()
         throw new Error(errBody.detail || 'Analysis failed')
