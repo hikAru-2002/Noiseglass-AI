@@ -26,16 +26,7 @@
   letter-spacing: 0.05em;
   line-height: 1;
   margin: 8px 0 28px;
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #f0f0f4 40%,
-    #c9c9d1 70%,
-    #97979f 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #f4f4f5;
   user-select: none;
   animation: fadeUp 0.7s ease both;
   filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.22))
