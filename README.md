@@ -14,7 +14,7 @@ Built as a portfolio project, Noiseglass demonstrates how modern AI can automate
 
 3. **Pass 2, deterministic analysis** — Python groups classified tickets into clusters and computes week-over-week trends, frequency, and volume. All arithmetic happens in code, not in the language model.
 
-4. **Pass 3, AI summarization** — Claude (Sonnet) receives the computed statistics and writes a product-team-facing headline, suggested action, and severity for each cluster — grounded in the verified numbers.
+4. **Pass 3, AI summarization** — Claude (Sonnet) receives the computed statistics and writes a product-team-facing headline, suggested action, and severity for each cluster, grounded in the verified numbers.
 
 5. **Visualization** — A live dashboard shows the raw incoming stream beside ranked signals, with severity tiers, trend percentages, drill-down ticket details, keyboard-driven search, and run history.
 
