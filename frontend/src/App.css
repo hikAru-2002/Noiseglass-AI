@@ -950,6 +950,58 @@ input {
   position: relative;
 }
 
+/* First-run gate: shown when the workspace has no tickets yet */
+.welcome-gate {
+  max-width: 440px;
+  margin: 8vh auto 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: fadeUp 0.5s var(--ease) both;
+}
+
+.welcome-title {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+}
+
+.welcome-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 28px;
+  max-width: 380px;
+}
+
+.github-picker-panel-inline {
+  position: static;
+  width: 100%;
+  animation: none;
+}
+
+.demo-data-link {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  cursor: pointer;
+  padding: 2px 0 0;
+  text-align: center;
+  transition: color var(--speed) var(--ease);
+}
+
+.demo-data-link:hover {
+  color: var(--text-primary);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .github-picker-toggle {
   background: var(--text-primary);
   color: var(--bg);

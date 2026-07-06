@@ -116,11 +116,9 @@ def _check_rate(workspace: str, bucket: str):
 # ------------------------------------------------------------------
 
 def _load_tickets(ws: str):
-    tickets = load_active_tickets(ws)
-    if not tickets:
-        tickets = generate_tickets()
-        save_active_tickets(tickets, source="synthetic", workspace_id=ws)
-    return tickets
+    """A new workspace starts empty: the user explicitly chooses a source
+    (upload, GitHub, App Store, Reddit, or demo data) before anything loads."""
+    return load_active_tickets(ws)
 
 
 def _replace_active_tickets(tickets: list[dict], source: str, ws: str):
@@ -174,8 +172,13 @@ def analyze(x_workspace_id: str | None = Header(None)):
             status_code=500,
             detail="ANTHROPIC_API_KEY is not set in the environment. Set it before running analysis.",
         )
-    _check_rate(ws, "analyze")
     tickets = _load_tickets(ws)
+    if not tickets:
+        raise HTTPException(
+            status_code=400,
+            detail="No tickets loaded. Pick a source (upload, GitHub, App Store, Reddit, or demo data) first.",
+        )
+    _check_rate(ws, "analyze")
     try:
         result = run_full_analysis(tickets, source_context=_describe_source(ws))
     except Exception as e:

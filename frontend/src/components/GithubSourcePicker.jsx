@@ -1,9 +1,9 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { apiFetch } from '../api.js'
 
 const SOURCES = ['upload', 'github', 'app store', 'reddit']
 
-export default function GithubSourcePicker({ apiBase, onLoaded }) {
+export default function GithubSourcePicker({ apiBase, onLoaded, inline = false }) {
   const [open, setOpen] = useState(false)
   const [source, setSource] = useState('upload')
   const [loading, setLoading] = useState(false)
@@ -14,6 +14,26 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
   const [pasteText, setPasteText] = useState('')
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef(null)
+  const containerRef = useRef(null)
+
+  // dismiss the dropdown when clicking anywhere outside it, or pressing Esc
+  useEffect(() => {
+    if (!open || inline) return
+    function onMouseDown(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false)
+      }
+    }
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onMouseDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open, inline])
 
   // github fields
   const [owner, setOwner] = useState('n8n-io')
@@ -84,14 +104,23 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
     }
   }
 
-  return (
-    <div className="github-picker">
-      <button className="github-picker-toggle" onClick={() => setOpen(!open)}>
-        Load tickets
-      </button>
+  async function loadDemoData() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await apiFetch(apiBase, '/api/regenerate-tickets', { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to load demo data')
+      onLoaded(await res.json())
+      setOpen(false)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-      {open && (
-        <div className="github-picker-panel">
+  const panel = (
+    <div className={inline ? 'github-picker-panel github-picker-panel-inline' : 'github-picker-panel'}>
           <div className="source-tabs">
             {SOURCES.map((s) => (
               <button
@@ -219,8 +248,20 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
             {loading ? 'Loading...' : source === 'upload' ? 'Analyze my data' : 'Fetch tickets'}
           </button>
           {error && <div className="github-picker-error">{error}</div>}
+          <button className="demo-data-link mono" onClick={loadDemoData} disabled={loading}>
+            ...or explore with demo data
+          </button>
         </div>
-      )}
+  )
+
+  if (inline) return panel
+
+  return (
+    <div className="github-picker" ref={containerRef}>
+      <button className="github-picker-toggle" onClick={() => setOpen(!open)}>
+        Load tickets
+      </button>
+      {open && panel}
     </div>
   )
 }

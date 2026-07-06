@@ -44,6 +44,7 @@ function rankCluster(c) {
 
 export default function Dashboard() {
   const [tickets, setTickets] = useState([])
+  const [booted, setBooted] = useState(false)
   const [analysis, setAnalysis] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -84,8 +85,11 @@ export default function Dashboard() {
       const res = await apiFetch(API_BASE, '/api/tickets')
       const data = await res.json()
       setTickets(data)
+      setError(null)
     } catch (e) {
       setError('Could not reach the backend. Is it running?')
+    } finally {
+      setBooted(true)
     }
   }
 
@@ -180,6 +184,17 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {!booted ? null : tickets.length === 0 && !error ? (
+        <div className="welcome-gate">
+          <h1 className="welcome-title">Where's your feedback?</h1>
+          <p className="welcome-sub">
+            Point Noiseglass at any source of customer feedback and it'll cluster
+            the noise into ranked, actionable signals.
+          </p>
+          <GithubSourcePicker apiBase={API_BASE} onLoaded={handleGithubLoaded} inline />
+        </div>
+      ) : (
+      <>
       <div className="stats-row">
         <div className="stat">
           <span className="stat-value">{totalCount}</span>
@@ -270,6 +285,8 @@ export default function Dashboard() {
           )}
         </section>
       </main>
+      </>
+      )}
 
       <footer className="footer">
         <span className="footer-brand mono">NOISEGLASS © 2026</span>
