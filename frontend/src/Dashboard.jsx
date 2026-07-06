@@ -53,7 +53,18 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [streamOpen, setStreamOpen] = useState(false)
+  // Fresh view each browser session: previous data stays in the database,
+  // but the console opens at the source gate unless this session already
+  // loaded or resumed something.
+  const [resumed, setResumed] = useState(
+    () => sessionStorage.getItem('noiseglass-session') === '1'
+  )
   const searchInputRef = useRef(null)
+
+  function markResumed() {
+    sessionStorage.setItem('noiseglass-session', '1')
+    setResumed(true)
+  }
 
   useEffect(() => {
     if (streamOpen) searchInputRef.current?.focus()
@@ -101,6 +112,7 @@ export default function Dashboard() {
   function handleGithubLoaded(data) {
     setAnalysis(null)
     fetchTickets()
+    markResumed()
   }
 
   async function fetchCachedAnalysis() {
@@ -194,7 +206,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {!booted ? null : tickets.length === 0 && !error ? (
+      {!booted ? null : (tickets.length === 0 || !resumed) && !error ? (
         <div className="welcome-gate">
           <h1 className="welcome-title">Where's your feedback?</h1>
           <p className="welcome-sub">
@@ -202,27 +214,34 @@ export default function Dashboard() {
             the noise into ranked, actionable signals.
           </p>
           <GithubSourcePicker apiBase={API_BASE} onLoaded={handleGithubLoaded} inline />
+          {tickets.length > 0 && (
+            <button className="resume-link mono" onClick={markResumed}>
+              resume last session · {tickets.length} tickets →
+            </button>
+          )}
         </div>
       ) : (
       <>
-      <div className="stats-row">
-        <button className="stat stat-clickable" onClick={() => setStreamOpen(true)} title="View the raw ticket stream">
-          <span className="stat-value">{totalCount}</span>
-          <span className="stat-label">tickets pulled →</span>
-        </button>
-        <div className="stat-divider" />
-        <div className="stat">
-          <span className="stat-value">{sortedClusters.length}</span>
-          <span className="stat-label">clustered signals</span>
+      <div className="console-head">
+        <div className="stats-row">
+          <button className="stat stat-clickable" onClick={() => setStreamOpen(true)} title="View the raw ticket stream">
+            <span className="stat-value">{totalCount}</span>
+            <span className="stat-label">tickets pulled →</span>
+          </button>
+          <div className="stat-divider" />
+          <div className="stat">
+            <span className="stat-value">{sortedClusters.length}</span>
+            <span className="stat-label">clustered signals</span>
+          </div>
+          <div className="stat-divider" />
+          <div className="stat">
+            <span className="stat-value">{noiseCount ?? '-'}</span>
+            <span className="stat-label">filtered as noise</span>
+          </div>
         </div>
-        <div className="stat-divider" />
-        <div className="stat">
-          <span className="stat-value">{noiseCount ?? '-'}</span>
-          <span className="stat-label">filtered as noise</span>
-        </div>
-      </div>
 
-      <RunHistory apiBase={API_BASE} refreshToken={analysis?.generated_at} />
+        <RunHistory apiBase={API_BASE} refreshToken={analysis?.generated_at} />
+      </div>
 
       {error && (
         <div className="error-banner">
