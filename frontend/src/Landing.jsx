@@ -97,8 +97,8 @@ export default function Landing() {
       <RevealSection className="features">
         <div className="feature">
           <span className="feature-number mono">01</span>
-          <h3>Pull from anywhere</h3>
-          <p>GitHub Issues, App Store reviews, Reddit posts, Zendesk tickets. Real feedback, not synthetic demos.</p>
+          <h3>Any data, zero integration</h3>
+          <p>Drop in a CSV export from any ticketing tool, paste raw text, or pull live from GitHub, the App Store, and Reddit.</p>
         </div>
         <div className="feature">
           <span className="feature-number mono">02</span>

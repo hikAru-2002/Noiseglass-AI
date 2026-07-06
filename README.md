@@ -1,50 +1,104 @@
-# Noiseglass / Support Trend Intelligence
+<div align="center">
 
-**Live at [noiseglass.vercel.app](https://noiseglass.vercel.app)**
+# Noiseglass
 
-Noiseglass is an AI-powered support intelligence platform that transforms noisy customer feedback into ranked, actionable product insights. It uses the Claude API to classify and summarize issues while relying on deterministic Python code for clustering and trend analysis, so every number is accurate and reproducible — the LLM never does the math.
+### Cut through the noise. See the real signal.
 
-Built as a portfolio project, Noiseglass demonstrates how modern AI can automate support operations: identifying recurring problems, prioritizing emerging trends, and surfacing insights product and engineering teams can act on immediately.
+**[Live demo → noiseglass.vercel.app](https://noiseglass.vercel.app)**
+
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white&labelColor=20232a)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi&logoColor=white&labelColor=20232a)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Railway-4169E1?logo=postgresql&logoColor=white&labelColor=20232a)
+![Claude](https://img.shields.io/badge/Claude_API-Haiku_+_Sonnet-D97757?labelColor=20232a)
+
+</div>
+
+---
+
+## What is this?
+
+**The short version:** paste in a flood of customer complaints — support tickets, app reviews, GitHub issues, Reddit threads — and Noiseglass tells you *"here are the 5 problems that actually matter, ranked, with the numbers to prove it."*
+
+**The slightly longer version:** every product team drowns in feedback. A hundred people say the same thing a hundred different ways ("app crashed", "keeps freezing", "won't open since update"), and the one genuinely urgent issue is buried under praise, spam, and vague complaints. Noiseglass reads all of it, groups messages that describe the same underlying problem, counts how each problem is trending week over week, and writes a short brief for each one: what's happening, how bad it is, and what to do next.
+
+Think of it as a translator between *"thousands of angry messages"* and *"a prioritized to-do list your engineering team will actually believe."*
+
+## The core idea: AI reads, code counts
+
+Most AI analytics tools have a trust problem: if you ask a language model "how many complaints did we get about billing?", it will give you a confident number that may be completely made up. LLMs are brilliant at reading and terrible at arithmetic.
+
+Noiseglass splits the job by strength:
+
+| Task | Who does it | Why |
+|------|-------------|-----|
+| Read messy human text and say what it's about | **Claude (AI)** | LLMs excel at understanding "my card got charged twice??" and "duplicate billing transaction" are the same issue |
+| Count tickets, compute trends, rank clusters | **Python (plain code)** | Code doesn't hallucinate. Every number is reproducible and defensible |
+| Write the human-facing summary | **Claude (AI)** | Given verified numbers, LLMs write excellent briefs — they just aren't allowed to invent the numbers |
+
+Every statistic on the dashboard was computed by deterministic code. The AI never does the math.
 
 ## How it works
 
-1. **Ingestion** — Pull real feedback from multiple sources: GitHub Issues (REST API), App Store reviews (Apple RSS), Reddit posts, Zendesk tickets, uploaded CSVs, or pasted text. A synthetic dataset is included for instant demos.
+```mermaid
+flowchart LR
+    A["📥 Ingest<br/>GitHub · App Store<br/>Reddit · Zendesk · CSV"] --> B["🤖 Pass 1: Classify<br/>Claude Haiku reads each<br/>ticket, assigns category"]
+    B --> C["🧮 Pass 2: Compute<br/>Python clusters tickets,<br/>calculates 4-week trends"]
+    C --> D["✍️ Pass 3: Summarize<br/>Claude Sonnet writes brief<br/>from verified numbers"]
+    D --> E["📊 Dashboard<br/>Ranked signals with<br/>severity + trend charts"]
+```
 
-2. **Pass 1, AI classification** — Claude (Haiku) reads batches of raw tickets in parallel and classifies each into a normalized category with a concise issue summary. Prompts are source-aware, so GitHub issues, app reviews, and support tickets are each interpreted in their proper context.
+**1. Ingestion.** Pull real feedback from six sources: GitHub Issues (REST API), App Store reviews (Apple's public RSS), Reddit posts, Zendesk tickets, uploaded CSVs, or pasted text. A synthetic dataset is included so the demo works instantly with zero setup.
 
-3. **Pass 2, deterministic analysis** — Python groups classified tickets into clusters and computes week-over-week trends, frequency, and volume. All arithmetic happens in code, not in the language model.
+**2. Classification — Claude Haiku.** Tickets are sent to Claude in parallel batches. For each one, the model returns a normalized category (like `billing_duplicate_charge`), a one-sentence neutral summary, and a flag for whether it's actionable signal or noise (praise, spam, vagueness). Prompts are **source-aware**: the model is told whether it's reading GitHub issues for a dev tool or App Store reviews for a mobile game, so classifications fit their context. Haiku is used here because classification is high-volume structured work — fast and cheap matters.
 
-4. **Pass 3, AI summarization** — Claude (Sonnet) receives the computed statistics and writes a product-team-facing headline, suggested action, and severity for each cluster, grounded in the verified numbers.
+**3. Deterministic analysis — Python.** Classified tickets are grouped into clusters. For each cluster, code computes total volume, per-week counts across a 4-week window, and week-over-week trend. This is ordinary arithmetic in ordinary Python — auditable, testable, and identical on every run.
 
-5. **Visualization** — A live dashboard shows the raw incoming stream beside ranked signals, with severity tiers, trend percentages, drill-down ticket details, keyboard-driven search, and run history.
+**4. Summarization — Claude Sonnet.** The computed statistics go back to Claude with strict instructions: *trust these numbers exactly, do not recompute them.* Sonnet writes a scannable headline, a concrete suggested action, and a severity rating for each cluster. Sonnet is used here because this is the human-facing writing where quality shows.
+
+**5. Dashboard.** Raw tickets stream on the left; ranked signals live on the right. Each signal card expands into an interactive 4-week trend chart (color-coded: red = heating up, green = cooling off), clickable sample tickets, and the suggested action. `/` focuses search, `Esc` dismisses panels.
+
+## Built like a real product, not just a demo
+
+These are the parts that go beyond a typical portfolio project:
+
+- **Multi-user workspace isolation.** Every browser gets its own workspace (UUID sent via header). Your tickets, analyses, and history are yours alone — two people using the site simultaneously never collide. Implemented with composite primary keys `(workspace_id, ticket_id)` so different workspaces can even hold the same ticket IDs.
+- **Rate limiting.** Analysis runs cost real API money, so each workspace is limited (4 analyses / 10 min, 20 source fetches / 10 min) with clean `429` responses. The Anthropic key can't be drained by a stranger with a `curl` loop.
+- **Migrations run on deploy.** Alembic migrations execute automatically before the server boots (`alembic upgrade head && uvicorn ...`), so the code and database schema can never drift apart in production.
+- **Persistence that survives redeploys.** Every analysis run — tickets, clusters, summaries — is stored in PostgreSQL. Analysis results are cached per workspace in the database, not on disk.
+- **Scheduled re-analysis.** A cron entrypoint re-analyzes every active workspace on a schedule, with a configurable cap (`CRON_MAX_WORKSPACES`) so costs stay bounded.
+- **Honest UI numbers.** Trend badges show real movement (`▲ 2 → 5 wk/wk`) instead of misleading percentages — "+100%" that actually means "went from 0 to 1 ticket" never appears. Severity ranking requires both volume and momentum, so a single new ticket can't masquerade as a crisis.
 
 ## Technology
 
-* **Frontend:** React + Vite, deployed on Vercel
-* **Backend:** FastAPI, deployed on Railway
-* **AI:** Claude API (Haiku for classification, Sonnet for summarization)
-* **Database:** PostgreSQL + SQLAlchemy; SQLite fallback for local dev
-* **Migrations:** Alembic
-* **Integrations:** GitHub REST API, Apple App Store RSS, Reddit, Zendesk
+| Layer | Choice |
+|-------|--------|
+| Frontend | React 18 + Vite, deployed on **Vercel** |
+| Backend | FastAPI (Python), deployed on **Railway** |
+| AI | Claude API — **Haiku** for classification, **Sonnet** for summarization |
+| Database | PostgreSQL + SQLAlchemy (SQLite fallback for local dev) |
+| Migrations | Alembic, applied automatically on deploy |
+| Integrations | GitHub REST API · Apple App Store RSS · Reddit (OAuth) · Zendesk |
 
 ## Running locally
 
-### Backend
+**Backend** (Python 3.10+):
 
 ```bash
 cd backend
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=sk-ant-...
+export ANTHROPIC_API_KEY=sk-ant-...   # required for analysis
 python -m uvicorn main:app --reload --port 8000
 ```
 
-To verify the complete pipeline independently:
+Optional env vars: `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET` (Reddit ingestion from cloud IPs), `ZENDESK_SUBDOMAIN` / `ZENDESK_EMAIL` / `ZENDESK_API_TOKEN`.
+
+Verify the full pipeline without the UI:
 
 ```bash
 python test_pipeline.py
 ```
 
-### Frontend
+**Frontend** (Node 18+):
 
 ```bash
 cd frontend
@@ -52,44 +106,83 @@ npm install
 npm run dev
 ```
 
-Open the local URL displayed by Vite. The frontend targets the API at `VITE_API_URL` (defaults to `http://localhost:8000`).
+Open the URL Vite prints. The frontend targets `VITE_API_URL` (defaults to `http://localhost:8000`).
 
-## Features
+## MCP server: use Noiseglass from any AI assistant
 
-* AI-powered classification with source-aware prompts
-* Live ingestion: GitHub Issues, App Store reviews, Reddit posts, Zendesk tickets, CSV upload, pasted text
-* Trend detection using deterministic Python calculations over 4-week windows
-* AI-generated headlines, recommended actions, and severity ratings
-* Four-tier signal ranking (severe / high / moderate / low) blending severity, momentum, and volume
-* PostgreSQL persistence of every run — tickets, clusters, and history survive redeploys
-* Cached analysis results to avoid repeated API costs
-* Keyboard-first UI: `/` to search, `Esc` to dismiss
+Noiseglass ships with a [Model Context Protocol](https://modelcontextprotocol.io) server, so MCP-capable assistants (Claude Desktop, Claude Code, and others) can drive the whole pipeline conversationally — *"load the issues from vercel/next.js and tell me what's trending"* just works.
+
+The server is a thin client of the hosted API: no logic is duplicated, and it gets its own persistent workspace via the same isolation mechanism browsers use.
+
+```bash
+cd mcp-server
+pip install -r requirements.txt
+```
+
+Then add to your MCP client config (e.g. `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "noiseglass": {
+      "command": "python",
+      "args": ["/path/to/signal-app/mcp-server/server.py"],
+      "env": { "NOISEGLASS_API_URL": "https://your-backend.up.railway.app" }
+    }
+  }
+}
+```
+
+Exposed tools: `load_github_issues`, `load_appstore_reviews`, `load_reddit_posts`, `load_raw_text`, `run_analysis`, `get_signals`, `get_run_history`.
+
+## API overview
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/tickets` | GET | Current workspace's active ticket set |
+| `/api/analyze` | POST | Run the full 3-pass analysis (rate limited) |
+| `/api/analysis` | GET | Cached analysis result, if any |
+| `/api/fetch-github-issues` | POST | Load issues from any public repo |
+| `/api/fetch-appstore-reviews` | POST | Load public reviews for any app |
+| `/api/fetch-reddit-posts` | POST | Load posts matching a search query |
+| `/api/fetch-zendesk-tickets` | POST | Load tickets from a Zendesk instance |
+| `/api/upload-csv`, `/api/upload-text` | POST | Bring your own data |
+| `/api/runs` | GET | This workspace's analysis history |
+| `/api/health` | GET | Liveness + API key check |
+
+All endpoints read the `X-Workspace-Id` header; requests without it share a public sandbox workspace.
 
 ## Project structure
 
 ```
 backend/
-  main.py                    FastAPI application and endpoints
-  engine.py                  Two-pass Claude analysis pipeline
-  database.py                Postgres/SQLite configuration
+  main.py                    FastAPI app: endpoints, workspace scoping, rate limits
+  engine.py                  Three-pass Claude analysis pipeline
+  persistence.py             Postgres storage: runs, tickets, per-workspace cache
   models.py                  SQLAlchemy models
-  persistence.py             Run history and active ticket storage
+  database.py                Postgres/SQLite configuration
   github_ingest.py           GitHub Issues integration
   appstore_ingest.py         App Store reviews integration
-  reddit_ingest.py           Reddit posts integration
-  zendesk_ingest.py          Zendesk tickets integration
+  reddit_ingest.py           Reddit integration (OAuth + public fallback)
+  zendesk_ingest.py          Zendesk integration
   ingest.py                  CSV and pasted-text parsing
-  run_scheduled_analysis.py  Cron entrypoint for scheduled runs
+  run_scheduled_analysis.py  Cron entrypoint, iterates active workspaces
   test_pipeline.py           Pipeline smoke tests
   alembic/                   Database migrations
+  railway.json               Deploy config: migrations run before boot
+
+mcp-server/
+  server.py                  MCP server: Noiseglass as tools for AI assistants
 
 frontend/
   src/
     Landing.jsx              Marketing page
     Dashboard.jsx            Analysis console
-    components/              Stream, signal cards, detail panel, history
+    api.js                   Workspace identity + fetch wrapper
+    components/              Signal cards, trend charts, stream, run history
+  vercel.json                SPA rewrite config
 ```
 
 ## Design philosophy
 
-Support teams receive hundreds of repetitive tickets that obscure the problems that matter. Noiseglass reduces that noise by combining AI classification with deterministic analytics: trust the LLM to read messy human text, trust code to count. The result is trend numbers a team can defend and act on.
+Support teams receive hundreds of repetitive tickets that obscure the problems that matter. Noiseglass reduces that noise with one governing rule: **trust the LLM to read messy human text, trust code to count.** The result is a brief a product team can defend in a meeting — because every number in it can be recomputed by hand.

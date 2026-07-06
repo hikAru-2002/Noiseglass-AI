@@ -30,7 +30,7 @@ import anthropic
 # Right model for the job: Haiku is fast + cheap and plenty for structured
 # classification; Sonnet writes the human-facing brief where quality shows.
 MODEL_CLASSIFY = "claude-haiku-4-5"
-MODEL_SUMMARIZE = "claude-sonnet-4-6"
+MODEL_SUMMARIZE = "claude-sonnet-5"
 
 client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
 

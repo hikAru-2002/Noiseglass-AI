@@ -1,13 +1,19 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { apiFetch } from '../api.js'
 
-const SOURCES = ['github', 'app store', 'reddit']
+const SOURCES = ['upload', 'github', 'app store', 'reddit']
 
 export default function GithubSourcePicker({ apiBase, onLoaded }) {
   const [open, setOpen] = useState(false)
-  const [source, setSource] = useState('github')
+  const [source, setSource] = useState('upload')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  // upload fields
+  const [file, setFile] = useState(null)
+  const [pasteText, setPasteText] = useState('')
+  const [dragging, setDragging] = useState(false)
+  const fileInputRef = useRef(null)
 
   // github fields
   const [owner, setOwner] = useState('n8n-io')
@@ -20,30 +26,55 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
   const [query, setQuery] = useState('')
   const [subreddit, setSubreddit] = useState('')
 
+  function handleDrop(e) {
+    e.preventDefault()
+    setDragging(false)
+    const dropped = e.dataTransfer.files?.[0]
+    if (dropped) {
+      setFile(dropped)
+      setError(null)
+    }
+  }
+
   async function handleFetch() {
     setLoading(true)
     setError(null)
     try {
-      let endpoint, body
-      if (source === 'github') {
-        endpoint = '/api/fetch-github-issues'
-        body = new URLSearchParams({ owner, repo, limit: '100' })
-      } else if (source === 'app store') {
-        endpoint = '/api/fetch-appstore-reviews'
-        body = new URLSearchParams({ app_term: appTerm, limit: '100' })
+      let res
+      if (source === 'upload') {
+        if (file) {
+          const form = new FormData()
+          form.append('file', file)
+          res = await apiFetch(apiBase, '/api/upload-csv', { method: 'POST', body: form })
+        } else if (pasteText.trim()) {
+          res = await apiFetch(apiBase, '/api/upload-text', {
+            method: 'POST',
+            body: new URLSearchParams({ text: pasteText }),
+          })
+        } else {
+          throw new Error('Drop a CSV export or paste ticket text first.')
+        }
       } else {
-        endpoint = '/api/fetch-reddit-posts'
-        body = new URLSearchParams({ query, subreddit, limit: '100' })
+        let endpoint, body
+        if (source === 'github') {
+          endpoint = '/api/fetch-github-issues'
+          body = new URLSearchParams({ owner, repo, limit: '100' })
+        } else if (source === 'app store') {
+          endpoint = '/api/fetch-appstore-reviews'
+          body = new URLSearchParams({ app_term: appTerm, limit: '100' })
+        } else {
+          endpoint = '/api/fetch-reddit-posts'
+          body = new URLSearchParams({ query, subreddit, limit: '100' })
+        }
+        res = await apiFetch(apiBase, endpoint, { method: 'POST', body })
       }
-      const res = await apiFetch(apiBase, endpoint, {
-        method: 'POST',
-        body,
-      })
       if (!res.ok) {
         const errBody = await res.json()
-        throw new Error(errBody.detail || 'Failed to fetch tickets')
+        throw new Error(errBody.detail || 'Failed to load tickets')
       }
       const data = await res.json()
+      setFile(null)
+      setPasteText('')
       onLoaded(data)
       setOpen(false)
     } catch (e) {
@@ -75,6 +106,53 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
               </button>
             ))}
           </div>
+
+          {source === 'upload' && (
+            <div className="source-fields">
+              <div
+                className={`upload-dropzone ${dragging ? 'upload-dropzone-active' : ''} ${file ? 'upload-dropzone-filled' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setDragging(true)
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={handleDrop}
+              >
+                {file ? (
+                  <>
+                    <span className="upload-dropzone-file mono">{file.name}</span>
+                    <span className="upload-dropzone-hint">click to choose a different file</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="upload-dropzone-label">Drop a CSV export here</span>
+                    <span className="upload-dropzone-hint">
+                      works with exports from Zendesk, Intercom, Jira, or any ticketing tool
+                    </span>
+                  </>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,text/csv,text/plain"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    setFile(e.target.files?.[0] || null)
+                    setError(null)
+                  }}
+                />
+              </div>
+              <div className="upload-divider mono">or paste raw ticket text</div>
+              <textarea
+                className="upload-paste mono"
+                rows={3}
+                placeholder="One ticket per line..."
+                value={pasteText}
+                onChange={(e) => setPasteText(e.target.value)}
+              />
+            </div>
+          )}
 
           {source === 'github' && (
             <div className="github-picker-fields mono">
@@ -138,7 +216,7 @@ export default function GithubSourcePicker({ apiBase, onLoaded }) {
             onClick={handleFetch}
             disabled={loading}
           >
-            {loading ? 'Fetching...' : 'Fetch tickets'}
+            {loading ? 'Loading...' : source === 'upload' ? 'Analyze my data' : 'Fetch tickets'}
           </button>
           {error && <div className="github-picker-error">{error}</div>}
         </div>
