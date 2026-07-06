@@ -52,7 +52,12 @@ export default function Dashboard() {
   const [expandedCategory, setExpandedCategory] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTicket, setSelectedTicket] = useState(null)
+  const [streamOpen, setStreamOpen] = useState(false)
   const searchInputRef = useRef(null)
+
+  useEffect(() => {
+    if (streamOpen) searchInputRef.current?.focus()
+  }, [streamOpen])
 
   useEffect(() => {
     fetchTickets()
@@ -65,14 +70,13 @@ export default function Dashboard() {
         const tag = e.target.tagName
         if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return
         e.preventDefault()
+        setStreamOpen(true)
         searchInputRef.current?.focus()
       } else if (e.key === 'Escape') {
         setSelectedTicket((prev) => {
           if (prev) return null
-          // no panel open: blur search instead
-          if (document.activeElement === searchInputRef.current) {
-            searchInputRef.current.blur()
-          }
+          // no ticket panel open: close the stream drawer instead
+          setStreamOpen(false)
           return prev
         })
       }
@@ -174,6 +178,11 @@ export default function Dashboard() {
           <span className="topbar-sub">Support Trend Intelligence</span>
         </div>
         <div className="topbar-right">
+          {tickets.length > 0 && (
+            <button className="stream-toggle mono" onClick={() => setStreamOpen(true)}>
+              stream · {tickets.length}
+            </button>
+          )}
           <GithubSourcePicker apiBase={API_BASE} onLoaded={handleGithubLoaded} />
           <button
             className="run-btn"
@@ -197,10 +206,10 @@ export default function Dashboard() {
       ) : (
       <>
       <div className="stats-row">
-        <div className="stat">
+        <button className="stat stat-clickable" onClick={() => setStreamOpen(true)} title="View the raw ticket stream">
           <span className="stat-value">{totalCount}</span>
-          <span className="stat-label">tickets pulled</span>
-        </div>
+          <span className="stat-label">tickets pulled →</span>
+        </button>
         <div className="stat-divider" />
         <div className="stat">
           <span className="stat-value">{sortedClusters.length}</span>
@@ -222,30 +231,6 @@ export default function Dashboard() {
       )}
 
       <main className="main-grid">
-        <section className="stream-panel">
-          <div className="panel-label">
-            <span className="eyebrow">Incoming</span>
-            <span className="panel-label-sub">raw tickets, unsorted</span>
-          </div>
-          <div className="stream-search">
-            <input
-              ref={searchInputRef}
-              className="stream-search-input mono"
-              type="text"
-              placeholder="Search tickets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <span className="stream-search-hint mono">/</span>
-          </div>
-          <IncomingStream
-            tickets={filteredTickets}
-            loading={loading}
-            onSelect={setSelectedTicket}
-            searching={searchQuery.trim().length > 0}
-          />
-        </section>
-
         <section className="signal-panel">
           <div className="panel-label">
             <span className="eyebrow">Signal</span>
@@ -295,6 +280,41 @@ export default function Dashboard() {
           real tickets · real trend math · written by Claude
         </span>
       </footer>
+
+      {streamOpen && (
+        <div className="stream-overlay" onClick={() => setStreamOpen(false)}>
+          <div className="stream-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="stream-drawer-header">
+              <div>
+                <span className="eyebrow">Incoming</span>
+                <span className="panel-label-sub"> raw tickets, unsorted</span>
+              </div>
+              <button className="detail-panel-close" onClick={() => setStreamOpen(false)}>
+                Esc
+              </button>
+            </div>
+            <div className="stream-search">
+              <input
+                ref={searchInputRef}
+                className="stream-search-input mono"
+                type="text"
+                placeholder="Search tickets..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <span className="stream-search-hint mono">/</span>
+            </div>
+            <div className="stream-drawer-body">
+              <IncomingStream
+                tickets={filteredTickets}
+                loading={loading}
+                onSelect={setSelectedTicket}
+                searching={searchQuery.trim().length > 0}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <TicketDetailPanel
         ticket={selectedTicket}
