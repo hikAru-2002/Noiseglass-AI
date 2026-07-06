@@ -1,0 +1,28 @@
+<!-- Source for the OG share image (1200x630). Convert to og.png when ready:
+     e.g. npx sharp-cli -i og-source.svg -o og.png  (or any SVG-to-PNG tool)
+     Then add to index.html:
+     <meta property="og:image" content="https://noiseglass.vercel.app/og.png" />
+     <meta name="twitter:card" content="summary_large_image" />
+     <meta name="twitter:image" content="https://noiseglass.vercel.app/og.png" /> -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0a0a0b"/>
+  <g fill="#f4f4f5">
+    <circle cx="120" cy="90" r="3" opacity="0.25"/>
+    <circle cx="1050" cy="140" r="2.5" opacity="0.2"/>
+    <circle cx="920" cy="60" r="2" opacity="0.3"/>
+    <circle cx="180" cy="540" r="2.5" opacity="0.2"/>
+    <circle cx="1100" cy="500" r="3" opacity="0.25"/>
+    <circle cx="620" cy="80" r="2" opacity="0.2"/>
+    <circle cx="80" cy="320" r="2" opacity="0.25"/>
+    <circle cx="1140" cy="330" r="2" opacity="0.2"/>
+    <circle cx="700" cy="560" r="2.5" opacity="0.25"/>
+    <circle cx="420" cy="50" r="2" opacity="0.2"/>
+  </g>
+  <circle cx="260" cy="315" r="130" stroke="#f4f4f5" stroke-width="14" fill="none"/>
+  <rect x="190" y="252" width="148" height="22" rx="11" fill="#f4f4f5"/>
+  <rect x="190" y="304" width="112" height="22" rx="11" fill="#a8a8ad"/>
+  <rect x="190" y="356" width="66" height="22" rx="11" fill="#5c5c62"/>
+  <text x="480" y="320" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="bold" fill="#f4f4f5" letter-spacing="4">NOISEGLASS</text>
+  <text x="484" y="392" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#a1a1a7">Cut through the noise. See the real signal.</text>
+  <text x="484" y="448" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="#67676e">AI-clustered support trends with math you can trust</text>
+</svg>

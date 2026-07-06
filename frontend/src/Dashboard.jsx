@@ -9,6 +9,7 @@ import TicketDetailPanel from './components/TicketDetailPanel.jsx'
 import AnalysisLoader from './components/AnalysisLoader.jsx'
 import AmbientField from './components/AmbientField.jsx'
 import RunHistory from './components/RunHistory.jsx'
+import Logo from './components/Logo.jsx'
 import { apiFetch } from './api.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -168,7 +169,7 @@ export default function Dashboard() {
           <Link to="/" className="back-link mono" title="Back to homepage">
             ←
           </Link>
-          <div className="wordmark-mark" />
+          <Logo size={24} />
           <span className="wordmark-text">Noiseglass</span>
           <span className="topbar-sub">Support Trend Intelligence</span>
         </div>
