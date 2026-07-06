@@ -1065,8 +1065,10 @@ input {
   max-width: 380px;
 }
 
-.github-picker-panel-inline {
+.github-picker-panel.github-picker-panel-inline {
   position: static;
+  top: auto;
+  right: auto;
   width: 100%;
   animation: none;
 }

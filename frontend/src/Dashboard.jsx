@@ -167,6 +167,8 @@ export default function Dashboard() {
     return top ? top[0] : null
   }, [tickets])
 
+  const gateShowing = booted && (tickets.length === 0 || !resumed) && !error
+
   const filteredTickets = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
     if (!q) return tickets
@@ -190,19 +192,23 @@ export default function Dashboard() {
           <span className="topbar-sub">Support Trend Intelligence</span>
         </div>
         <div className="topbar-right">
-          {tickets.length > 0 && (
+          {tickets.length > 0 && !gateShowing && (
             <button className="stream-toggle mono" onClick={() => setStreamOpen(true)}>
               stream · {tickets.length}
             </button>
           )}
-          <GithubSourcePicker apiBase={API_BASE} onLoaded={handleGithubLoaded} />
-          <button
-            className="run-btn"
-            onClick={runAnalysis}
-            disabled={loading || tickets.length === 0}
-          >
-            {loading ? 'Resolving signal...' : analysis ? 'Re-run analysis' : 'Run analysis'}
-          </button>
+          {!gateShowing && (
+            <>
+              <GithubSourcePicker apiBase={API_BASE} onLoaded={handleGithubLoaded} />
+              <button
+                className="run-btn"
+                onClick={runAnalysis}
+                disabled={loading || tickets.length === 0}
+              >
+                {loading ? 'Resolving signal...' : analysis ? 'Re-run analysis' : 'Run analysis'}
+              </button>
+            </>
+          )}
         </div>
       </header>
 
