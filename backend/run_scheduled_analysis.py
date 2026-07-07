@@ -1,7 +1,7 @@
 """
 Scheduled analysis runner for Railway cron.
 
-For each workspace that has an active ticket set, runs the full
+For each workspace that has an active fragment set, runs the full
 Claude + deterministic analysis and saves the run. Designed to run as a
 Railway cron service (e.g. "0 9 * * *" for daily at 9am UTC) with the
 same DATABASE_URL and ANTHROPIC_API_KEY as the API service.
@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 from engine import run_full_analysis
 from persistence import (
-    load_active_tickets,
+    load_active_fragments,
     save_analysis_run,
     save_cached_analysis,
     get_active_source,
@@ -48,15 +48,15 @@ def main() -> int:
 
     failures = 0
     for ws in workspaces:
-        tickets = load_active_tickets(ws)
-        if not tickets:
+        fragments = load_active_fragments(ws)
+        if not fragments:
             continue
-        print(f"[cron] workspace {ws}: analyzing {len(tickets)} tickets...", flush=True)
+        print(f"[cron] workspace {ws}: analyzing {len(fragments)} fragments...", flush=True)
         try:
             source = get_active_source(ws)
-            result = run_full_analysis(tickets)
+            result = run_full_analysis(fragments)
             save_cached_analysis(result, ws)
-            run_id = save_analysis_run(tickets, result, source=source, workspace_id=ws)
+            run_id = save_analysis_run(fragments, result, source=source, workspace_id=ws)
             print(
                 f"[cron] workspace {ws}: run {run_id} saved, "
                 f"{len(result['actionable_clusters'])} clusters, "

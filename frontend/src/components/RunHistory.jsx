@@ -15,8 +15,6 @@ function formatRunDate(iso) {
 
 const SOURCE_NAMES = {
   github: 'GitHub',
-  appstore: 'App Store',
-  reddit: 'Reddit',
   zendesk: 'Zendesk',
   upload: 'Uploaded',
   synthetic: 'Demo data',
@@ -62,7 +60,7 @@ export default function RunHistory({ apiBase, refreshToken }) {
           <div className="run-chip" key={r.id} title={`${formatSource(r.source)} — ${r.generated_at}`}>
             <span className="run-chip-source">{formatSource(r.source)}</span>
             <span className="run-chip-stats mono">
-              {formatRunDate(r.generated_at)} · {r.total_tickets_analyzed} tix · {r.cluster_count} signals
+              {formatRunDate(r.generated_at)} · {r.total_fragments_analyzed} frags · {r.cluster_count} signals
             </span>
           </div>
         ))}

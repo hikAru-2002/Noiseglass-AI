@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { apiFetch } from '../api.js'
 
-const SOURCES = ['upload', 'github', 'app store', 'reddit']
+const SOURCES = ['upload', 'github']
 
 export default function GithubSourcePicker({ apiBase, onLoaded, inline = false }) {
   const [open, setOpen] = useState(false)
@@ -39,13 +39,6 @@ export default function GithubSourcePicker({ apiBase, onLoaded, inline = false }
   const [owner, setOwner] = useState('n8n-io')
   const [repo, setRepo] = useState('n8n')
 
-  // app store fields
-  const [appTerm, setAppTerm] = useState('')
-
-  // reddit fields
-  const [query, setQuery] = useState('')
-  const [subreddit, setSubreddit] = useState('')
-
   function handleDrop(e) {
     e.preventDefault()
     setDragging(false)
@@ -72,25 +65,16 @@ export default function GithubSourcePicker({ apiBase, onLoaded, inline = false }
             body: new URLSearchParams({ text: pasteText }),
           })
         } else {
-          throw new Error('Drop a CSV export or paste ticket text first.')
+          throw new Error('Drop a CSV export or paste some text first.')
         }
       } else {
-        let endpoint, body
-        if (source === 'github') {
-          endpoint = '/api/fetch-github-issues'
-          body = new URLSearchParams({ owner, repo, limit: '100' })
-        } else if (source === 'app store') {
-          endpoint = '/api/fetch-appstore-reviews'
-          body = new URLSearchParams({ app_term: appTerm, limit: '100' })
-        } else {
-          endpoint = '/api/fetch-reddit-posts'
-          body = new URLSearchParams({ query, subreddit, limit: '100' })
-        }
+        const endpoint = '/api/fetch-github-issues'
+        const body = new URLSearchParams({ owner, repo, limit: '100' })
         res = await apiFetch(apiBase, endpoint, { method: 'POST', body })
       }
       if (!res.ok) {
         const errBody = await res.json()
-        throw new Error(errBody.detail || 'Failed to load tickets')
+        throw new Error(errBody.detail || 'Failed to load fragments')
       }
       const data = await res.json()
       setFile(null)
@@ -108,7 +92,7 @@ export default function GithubSourcePicker({ apiBase, onLoaded, inline = false }
     setLoading(true)
     setError(null)
     try {
-      const res = await apiFetch(apiBase, '/api/regenerate-tickets', { method: 'POST' })
+      const res = await apiFetch(apiBase, '/api/regenerate-fragments', { method: 'POST' })
       if (!res.ok) throw new Error('Failed to load demo data')
       onLoaded(await res.json())
       setOpen(false)
@@ -172,11 +156,11 @@ export default function GithubSourcePicker({ apiBase, onLoaded, inline = false }
                   }}
                 />
               </div>
-              <div className="upload-divider mono">or paste raw ticket text</div>
+              <div className="upload-divider mono">or paste raw text</div>
               <textarea
                 className="upload-paste mono"
                 rows={3}
-                placeholder="One ticket per line..."
+                placeholder="One fragment per line..."
                 value={pasteText}
                 onChange={(e) => setPasteText(e.target.value)}
               />
@@ -203,49 +187,12 @@ export default function GithubSourcePicker({ apiBase, onLoaded, inline = false }
             </div>
           )}
 
-          {source === 'app store' && (
-            <div className="source-fields">
-              <input
-                className="github-picker-input mono"
-                value={appTerm}
-                onChange={(e) => setAppTerm(e.target.value)}
-                placeholder="app name"
-                spellCheck={false}
-              />
-              <span className="source-note">
-                public reviews via Apple's RSS feed, no auth needed
-              </span>
-            </div>
-          )}
-
-          {source === 'reddit' && (
-            <div className="source-fields">
-              <input
-                className="github-picker-input mono"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="search term"
-                spellCheck={false}
-              />
-              <input
-                className="github-picker-input mono"
-                value={subreddit}
-                onChange={(e) => setSubreddit(e.target.value)}
-                placeholder="subreddit (optional)"
-                spellCheck={false}
-              />
-              <span className="source-note">
-                real user posts from the last month, no auth needed
-              </span>
-            </div>
-          )}
-
           <button
             className="github-picker-fetch"
             onClick={handleFetch}
             disabled={loading}
           >
-            {loading ? 'Loading...' : source === 'upload' ? 'Analyze my data' : 'Fetch tickets'}
+            {loading ? 'Loading...' : source === 'upload' ? 'Analyze my data' : 'Fetch issues'}
           </button>
           {error && <div className="github-picker-error">{error}</div>}
           <button className="demo-data-link mono" onClick={loadDemoData} disabled={loading}>
@@ -259,7 +206,7 @@ export default function GithubSourcePicker({ apiBase, onLoaded, inline = false }
   return (
     <div className="github-picker" ref={containerRef}>
       <button className="github-picker-toggle" onClick={() => setOpen(!open)}>
-        Load tickets
+        Load data
       </button>
       {open && panel}
     </div>

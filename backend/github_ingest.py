@@ -1,5 +1,5 @@
 """
-Pulls real GitHub Issues and normalizes them into the same ticket shape
+Pulls real GitHub Issues and normalizes them into the same fragment shape
 ingest.py produces: { id, created_at, customer_name, company, channel, subject, body }
 
 Uses GitHub's public REST API. If GITHUB_TOKEN is set in the environment,
@@ -15,7 +15,7 @@ GITHUB_API = "https://api.github.com"
 
 def fetch_github_issues(owner: str, repo: str, limit: int = 50) -> list[dict]:
     """Fetch recent issues (not pull requests) from a public GitHub repo,
-    normalized into Noiseglass's ticket shape."""
+    normalized into Noiseglass's fragment shape."""
     url = f"{GITHUB_API}/repos/{owner}/{repo}/issues"
     params = {
         "state": "all",
@@ -33,7 +33,7 @@ def fetch_github_issues(owner: str, repo: str, limit: int = 50) -> list[dict]:
     resp.raise_for_status()
     raw_issues = resp.json()
 
-    tickets = []
+    fragments = []
     for issue in raw_issues:
         if "pull_request" in issue:
             continue
@@ -42,7 +42,7 @@ def fetch_github_issues(owner: str, repo: str, limit: int = 50) -> list[dict]:
         if not body:
             continue
 
-        tickets.append({
+        fragments.append({
             "id": f"GH-{issue['number']}",
             "created_at": issue["created_at"],
             "customer_name": issue["user"]["login"],
@@ -52,4 +52,4 @@ def fetch_github_issues(owner: str, repo: str, limit: int = 50) -> list[dict]:
             "body": body[:2000],
         })
 
-    return tickets
+    return fragments

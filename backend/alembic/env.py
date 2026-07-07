@@ -9,7 +9,7 @@ import sys
 sys.path.append(os.getcwd())
 
 from database import Base
-from models import AnalysisRun, Ticket, ClusterSummary
+from models import AnalysisRun, Fragment, ClusterSummary
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

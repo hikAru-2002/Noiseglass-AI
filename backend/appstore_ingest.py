@@ -1,6 +1,12 @@
 """
+DEPRECATED / UNUSED: App Store reviews were dropped as a source in the
+Noiseglass concept change (fewer, more universal ingestion paths: GitHub,
+Zendesk, upload, or any MCP-capable agent via raw text). Nothing imports
+this module anymore. Safe to delete this file
+(backend/appstore_ingest.py) whenever convenient.
+
 Pulls real Apple App Store customer reviews and normalizes them into the
-same ticket shape ingest.py produces:
+same fragment shape ingest.py produces:
   { id, created_at, customer_name, company, channel, subject, body }
 
 Uses Apple's public iTunes RSS feed: completely free, no auth, no rate

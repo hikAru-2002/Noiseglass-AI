@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 const PHASES = [
-  'reading tickets',
+  'reading fragments',
   'normalizing issues',
   'clustering by root cause',
   'computing week-over-week trends',
@@ -11,7 +11,7 @@ const PHASES = [
 const CYCLE_MS = 7000 // one scatter->cluster cycle
 const CLUSTER_COUNT = 5
 
-export default function AnalysisLoader({ ticketCount = 0, sourceName = null }) {
+export default function AnalysisLoader({ fragmentCount = 0, sourceName = null }) {
   const canvasRef = useRef(null)
   const [phaseIdx, setPhaseIdx] = useState(0)
 
@@ -56,7 +56,7 @@ export default function AnalysisLoader({ ticketCount = 0, sourceName = null }) {
     }
 
     function seedParticles() {
-      const n = Math.min(Math.max(ticketCount, 40), 140)
+      const n = Math.min(Math.max(fragmentCount, 40), 140)
       particles = Array.from({ length: n }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
@@ -201,7 +201,7 @@ export default function AnalysisLoader({ ticketCount = 0, sourceName = null }) {
       canvas.removeEventListener('click', onClick)
       window.removeEventListener('resize', onResize)
     }
-  }, [ticketCount])
+  }, [fragmentCount])
 
   return (
     <div className="analysis-loader">
@@ -219,7 +219,7 @@ export default function AnalysisLoader({ ticketCount = 0, sourceName = null }) {
         <span className="analysis-loader-caret" />
       </div>
       <p className="analysis-loader-hint">
-        {ticketCount} tickets{sourceName ? ` from ${sourceName}` : ''} resolving
+        {fragmentCount} fragments{sourceName ? ` from ${sourceName}` : ''} resolving
         into signal. Move your cursor through the noise, click to send a pulse.
       </p>
     </div>

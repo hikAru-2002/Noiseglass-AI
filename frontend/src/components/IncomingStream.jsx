@@ -9,29 +9,29 @@ function timeAgo(isoString) {
   return `${weeks}w ago`
 }
 
-export default function IncomingStream({ tickets, loading, onSelect, searching }) {
-  const sorted = [...tickets].sort(
+export default function IncomingStream({ fragments, loading, onSelect, searching }) {
+  const sorted = [...fragments].sort(
     (a, b) => new Date(b.created_at) - new Date(a.created_at)
   )
   return (
     <div className={`stream-list ${loading ? 'stream-list-resolving' : ''}`}>
-      {sorted.map((t) => (
-        <div className="stream-item" key={t.id} onClick={() => onSelect(t)}>
+      {sorted.map((f) => (
+        <div className="stream-item" key={f.id} onClick={() => onSelect(f)}>
           <div className="stream-item-top">
-            <span className="channel-tag mono">{t.channel}</span>
-            <span className="stream-item-time mono">{timeAgo(t.created_at)}</span>
+            <span className="channel-tag mono">{f.channel}</span>
+            <span className="stream-item-time mono">{timeAgo(f.created_at)}</span>
           </div>
-          <div className="stream-item-subject">{t.subject}</div>
+          <div className="stream-item-subject">{f.subject}</div>
           <div className="stream-item-meta">
-            {t.customer_name} · {t.company}
+            {f.customer_name} · {f.company}
           </div>
         </div>
       ))}
       {sorted.length === 0 && (
         <div className="stream-empty">
           {searching
-            ? 'No tickets match your search.'
-            : 'No tickets yet. Load a source to get started.'}
+            ? 'No fragments match your search.'
+            : 'No fragments yet. Load a source to get started.'}
         </div>
       )}
     </div>

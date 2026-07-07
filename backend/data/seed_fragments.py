@@ -1,11 +1,7 @@
 """
-DEPRECATED / UNUSED: replaced by seed_fragments.py (generate_fragments) in
-the Noiseglass concept change. Nothing imports this module anymore. Safe
-to delete this file (backend/data/seed_tickets.py) whenever convenient.
-
-Synthetic support ticket dataset for "Flowline", a fictional B2B workflow
-automation SaaS product. Tickets are intentionally noisy: duplicates with
-different phrasing, vague one-liners, off-topic tickets, and a mix of
+Synthetic feedback dataset for "Flowline", a fictional B2B workflow
+automation SaaS product. Fragments are intentionally noisy: duplicates with
+different phrasing, vague one-liners, off-topic fragments, and a mix of
 severities, spread across a 4-week window so trend-over-time logic has
 something real to chew on.
 """
@@ -96,10 +92,10 @@ COMPANY_NAMES = [
 ]
 
 
-def generate_tickets(seed: int = 42):
+def generate_fragments(seed: int = 42):
     random.seed(seed)
-    tickets = []
-    ticket_id = 1001
+    fragments = []
+    fragment_id = 1001
     now = datetime.now(timezone.utc)
 
     # Weighting controls *trend* shape: which clusters are growing vs flat vs shrinking
@@ -122,8 +118,8 @@ def generate_tickets(seed: int = 42):
                 days_ago = week_idx * 7 + random.randint(0, 6)
                 created = now - timedelta(days=days_ago, hours=random.randint(0, 23))
                 text = random.choice(templates)
-                tickets.append({
-                    "id": f"TCK-{ticket_id}",
+                fragments.append({
+                    "id": f"FRG-{fragment_id}",
                     "created_at": created.isoformat(),
                     "customer_name": random.choice(CUSTOMER_NAMES),
                     "company": random.choice(COMPANY_NAMES),
@@ -132,15 +128,15 @@ def generate_tickets(seed: int = 42):
                     "body": text,
                     "_true_cluster": cluster,  # ground truth, NOT shown to the model, used only for our own eval/demo narration
                 })
-                ticket_id += 1
+                fragment_id += 1
 
-    random.shuffle(tickets)
-    return tickets
+    random.shuffle(fragments)
+    return fragments
 
 
 if __name__ == "__main__":
     import json
-    data = generate_tickets()
-    print(f"Generated {len(data)} tickets")
-    with open("tickets.json", "w") as f:
+    data = generate_fragments()
+    print(f"Generated {len(data)} fragments")
+    with open("fragments.json", "w") as f:
         json.dump(data, f, indent=2)

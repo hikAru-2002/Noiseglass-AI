@@ -1,5 +1,5 @@
 """
-Pulls real Zendesk tickets and normalizes them into the same ticket shape
+Pulls real Zendesk tickets and normalizes them into the same fragment shape
 ingest.py produces: { id, created_at, customer_name, company, channel, subject, body }
 
 Auth: Zendesk API token auth. Basic auth with "{email}/token" as the
@@ -18,7 +18,7 @@ def fetch_zendesk_tickets(
     limit: int = 100,
 ) -> list[dict]:
     """Fetch recent tickets from a Zendesk instance, normalized into
-    Noiseglass's ticket shape. Sideloads users to resolve requester names."""
+    Noiseglass's fragment shape. Sideloads users to resolve requester names."""
     url = f"https://{subdomain}.zendesk.com/api/v2/tickets.json"
     params = {
         "sort_by": "created_at",
@@ -34,7 +34,7 @@ def fetch_zendesk_tickets(
 
     users_by_id = {u["id"]: u for u in data.get("users", [])}
 
-    tickets = []
+    fragments = []
     for t in data.get("tickets", []):
         body = (t.get("description") or "").strip()
         if not body:
@@ -43,7 +43,7 @@ def fetch_zendesk_tickets(
         requester = users_by_id.get(t.get("requester_id"), {})
         via = (t.get("via") or {}).get("channel", "zendesk")
 
-        tickets.append({
+        fragments.append({
             "id": f"ZD-{t['id']}",
             "created_at": t["created_at"],
             "customer_name": requester.get("name", "unknown"),
@@ -53,4 +53,4 @@ def fetch_zendesk_tickets(
             "body": body[:2000],
         })
 
-    return tickets
+    return fragments

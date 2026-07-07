@@ -72,7 +72,7 @@ export default function Landing() {
           Cut through the noise.<br />See the real signal.
         </h1>
         <p className="hero-sub">
-          Noiseglass clusters live support tickets into ranked, actionable trends,
+          Noiseglass clusters any pile of raw feedback into ranked, actionable trends,
           powered by Claude and real deterministic math, not guesswork.
         </p>
         <button className="hero-cta" onClick={() => navigate('/app')}>
@@ -86,7 +86,7 @@ export default function Landing() {
         >
           <div className="hero-card-top">
             <span className="hero-card-severity mono">high</span>
-            <span className="hero-card-count mono">19 tickets</span>
+            <span className="hero-card-count mono">19 fragments</span>
           </div>
           <div className="hero-card-title">Integration Auth Error</div>
           <p className="hero-card-text">
@@ -99,7 +99,7 @@ export default function Landing() {
         <div className="feature">
           <span className="feature-number mono">01</span>
           <h3>Any data, zero integration</h3>
-          <p>Drop in a CSV export from any ticketing tool, paste raw text, or pull live from GitHub, the App Store, and Reddit.</p>
+          <p>Drop in a CSV, paste raw text, pull live from GitHub or Zendesk, or point any MCP-capable AI agent at it directly. If it's text, Noiseglass reads it.</p>
         </div>
         <div className="feature">
           <span className="feature-number mono">02</span>

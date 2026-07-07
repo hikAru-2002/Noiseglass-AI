@@ -9,17 +9,20 @@ class AnalysisRun(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     generated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    total_tickets_analyzed = Column(Integer)
+    total_fragments_analyzed = Column(Integer)
     noise_filtered_count = Column(Integer)
-    source = Column(String, nullable=True)  # e.g. "github:n8n-io/n8n", "appstore:Clash of Clans"
+    source = Column(String, nullable=True)  # e.g. "github:n8n-io/n8n", "zendesk:acme.zendesk.com"
     workspace_id = Column(String, default="public", index=True)
 
-    tickets = relationship("Ticket", back_populates="run", cascade="all, delete-orphan")
+    fragments = relationship("Fragment", back_populates="run", cascade="all, delete-orphan")
     clusters = relationship("ClusterSummary", back_populates="run", cascade="all, delete-orphan")
 
 
-class Ticket(Base):
-    __tablename__ = "tickets"
+class Fragment(Base):
+    """A single unit of raw text analyzed in a run: a support message, a
+    GitHub issue, a pasted note, whatever the source. Deliberately
+    source-agnostic so the same shape works for anything text-shaped."""
+    __tablename__ = "fragments"
 
     id = Column(String, primary_key=True)  # e.g. "UPL-0001"
     run_id = Column(Integer, ForeignKey("analysis_runs.id"))
@@ -35,7 +38,7 @@ class Ticket(Base):
     normalized_issue = Column(String, nullable=True)
     is_actionable_signal = Column(Boolean, nullable=True)
 
-    run = relationship("AnalysisRun", back_populates="tickets")
+    run = relationship("AnalysisRun", back_populates="fragments")
 
 
 class ClusterSummary(Base):
@@ -44,7 +47,7 @@ class ClusterSummary(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     run_id = Column(Integer, ForeignKey("analysis_runs.id"))
     category = Column(String)
-    total_tickets = Column(Integer)
+    total_fragments = Column(Integer)
     week_counts = Column(JSON)  # [this week, last week, 2wk ago, 3wk ago]
     trend_pct_vs_last_week = Column(Float)
     sample_issues = Column(JSON)
@@ -54,13 +57,13 @@ class ClusterSummary(Base):
 
     run = relationship("AnalysisRun", back_populates="clusters")
 
-class ActiveTicket(Base):
-    """The current working set of tickets shown in the Incoming view.
-    Unlike Ticket (which is a snapshot tied to a specific analysis run),
-    this table holds whatever ticket set is currently active, whether
+class ActiveFragment(Base):
+    """The current working set of fragments shown in the Incoming view.
+    Unlike Fragment (which is a snapshot tied to a specific analysis run),
+    this table holds whatever fragment set is currently active, whether
     synthetic, uploaded, or pulled from GitHub. Replacing the active set
     deletes all rows and inserts the new ones."""
-    __tablename__ = "active_tickets"
+    __tablename__ = "active_fragments"
 
     workspace_id = Column(String, primary_key=True, default="public")
     id = Column(String, primary_key=True)

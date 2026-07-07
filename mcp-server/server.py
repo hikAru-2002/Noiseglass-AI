@@ -2,9 +2,12 @@
 Noiseglass MCP server.
 
 Exposes the deployed Noiseglass API as MCP tools, so any MCP-capable AI
-assistant (Claude Desktop, Claude Code, etc.) can load feedback data,
-run the analysis pipeline, and read ranked signals as part of a
-conversation.
+assistant (Claude Desktop, Claude Code, etc.) can load raw text, run the
+analysis pipeline, and read ranked signals as part of a conversation. This
+is deliberately the most universal entry point into Noiseglass: an AI
+agent doesn't need a GitHub repo or a Zendesk account, it can hand over
+any pile of text (notes, logs, transcripts, tickets, whatever) and get
+back ranked, actionable signal.
 
 Design notes:
   - This is a thin client of the hosted REST API. No analysis logic is
@@ -62,9 +65,9 @@ def _format_signals(result: dict) -> str:
     clusters = result.get("actionable_clusters", [])
     if not clusters:
         return "Analysis complete, but no actionable signals were found."
-    clusters = sorted(clusters, key=lambda c: c.get("total_tickets", 0), reverse=True)
+    clusters = sorted(clusters, key=lambda c: c.get("total_fragments", 0), reverse=True)
     lines = [
-        f"Analyzed {result.get('total_tickets_analyzed', '?')} tickets, "
+        f"Analyzed {result.get('total_fragments_analyzed', '?')} fragments, "
         f"{result.get('noise_filtered_count', '?')} filtered as noise, "
         f"{len(clusters)} actionable signals:\n"
     ]
@@ -72,7 +75,7 @@ def _format_signals(result: dict) -> str:
         wk = c.get("week_counts", [0, 0, 0, 0])
         lines.append(
             f"- [{c.get('severity', '?').upper()}] {c.get('category', '?')} "
-            f"({c.get('total_tickets', 0)} tickets, this wk {wk[0]} vs last wk {wk[1]})\n"
+            f"({c.get('total_fragments', 0)} fragments, this wk {wk[0]} vs last wk {wk[1]})\n"
             f"  Headline: {c.get('headline', 'n/a')}\n"
             f"  Suggested action: {c.get('suggested_action', 'n/a')}"
         )
@@ -82,7 +85,7 @@ def _format_signals(result: dict) -> str:
 @mcp.tool()
 def load_github_issues(owner: str, repo: str, limit: int = 100) -> str:
     """Load open issues from a public GitHub repository into the Noiseglass
-    workspace as the active ticket set. Replaces previously loaded data.
+    workspace as the active fragment set. Replaces previously loaded data.
     Follow with run_analysis to get ranked signals."""
     data = _call("POST", "/api/fetch-github-issues",
                  data={"owner": owner, "repo": repo, "limit": str(limit)})
@@ -90,34 +93,19 @@ def load_github_issues(owner: str, repo: str, limit: int = 100) -> str:
 
 
 @mcp.tool()
-def load_appstore_reviews(app_name: str, limit: int = 100) -> str:
-    """Load recent public App Store reviews for an iOS app (by name) into
-    the Noiseglass workspace. Replaces previously loaded data."""
-    data = _call("POST", "/api/fetch-appstore-reviews",
-                 data={"app_term": app_name, "limit": str(limit)})
-    return f"Loaded {data['count']} reviews ({data['source']}). Call run_analysis next."
-
-
-@mcp.tool()
-def load_reddit_posts(query: str, subreddit: str = "", limit: int = 100) -> str:
-    """Load recent Reddit text posts matching a search query (optionally
-    scoped to one subreddit) into the Noiseglass workspace."""
-    data = _call("POST", "/api/fetch-reddit-posts",
-                 data={"query": query, "subreddit": subreddit, "limit": str(limit)})
-    return f"Loaded {data['count']} posts ({data['source']}). Call run_analysis next."
-
-
-@mcp.tool()
 def load_raw_text(text: str) -> str:
-    """Load raw feedback text into the Noiseglass workspace, one ticket per
-    line. Use this to analyze feedback pasted or collected from anywhere."""
+    """Load any raw text into the Noiseglass workspace, one fragment per
+    line. This is the universal entry point: feedback, interview notes,
+    meeting notes, logs, transcripts, or anything else worth mining for
+    patterns, from any source, human or AI-collected. Replaces previously
+    loaded data."""
     data = _call("POST", "/api/upload-text", data={"text": text})
-    return f"Loaded {data['count']} tickets from raw text. Call run_analysis next."
+    return f"Loaded {data['count']} fragments from raw text. Call run_analysis next."
 
 
 @mcp.tool()
 def run_analysis() -> str:
-    """Run the full Noiseglass analysis on the currently loaded tickets:
+    """Run the full Noiseglass analysis on the currently loaded fragments:
     AI classification (Claude), deterministic Python trend math, and AI
     summaries. Returns ranked signals with severity, week-over-week
     movement, headlines, and suggested actions. May take up to a minute.
@@ -140,7 +128,7 @@ def get_signals() -> str:
 @mcp.tool()
 def get_run_history(limit: int = 10) -> str:
     """List this workspace's recent analysis runs: when they ran, what
-    source was analyzed, ticket and signal counts."""
+    source was analyzed, fragment and signal counts."""
     data = _call("GET", f"/api/runs?limit={limit}")
     runs = data.get("runs", [])
     if not runs:
@@ -149,7 +137,7 @@ def get_run_history(limit: int = 10) -> str:
     for r in runs:
         lines.append(
             f"- {r.get('generated_at', '?')[:16]} | {r.get('source') or 'unknown source'} | "
-            f"{r.get('total_tickets_analyzed', '?')} tickets -> {r.get('cluster_count', '?')} signals"
+            f"{r.get('total_fragments_analyzed', '?')} fragments -> {r.get('cluster_count', '?')} signals"
         )
     return "\n".join(lines)
 

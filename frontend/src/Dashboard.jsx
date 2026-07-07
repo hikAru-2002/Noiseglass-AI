@@ -5,7 +5,7 @@ import SignalCard from './components/SignalCard.jsx'
 import IncomingStream from './components/IncomingStream.jsx'
 import EmptyState from './components/EmptyState.jsx'
 import GithubSourcePicker from './components/GithubSourcePicker.jsx'
-import TicketDetailPanel from './components/TicketDetailPanel.jsx'
+import FragmentDetailPanel from './components/FragmentDetailPanel.jsx'
 import AnalysisLoader from './components/AnalysisLoader.jsx'
 import AmbientField from './components/AmbientField.jsx'
 import RunHistory from './components/RunHistory.jsx'
@@ -17,12 +17,12 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 // Derive a 4-tier rank from severity, trend momentum, and volume.
 // SEVERE = high severity that is also spiking; LOW = quiet and flat.
 // Momentum only counts when there was a real baseline last week: a brand-new
-// cluster with 1 ticket is unproven, not a spike. Volume floors stop tiny
+// cluster with 1 fragment is unproven, not a spike. Volume floors stop tiny
 // clusters from ever showing as SEVERE.
 function rankCluster(c) {
   const base = { high: 3, medium: 2, low: 1 }[c.severity] ?? 1
   const [thisWk = 0, lastWk = 0] = c.week_counts ?? []
-  const vol = c.total_tickets ?? 0
+  const vol = c.total_fragments ?? 0
   let score = base
   if (lastWk > 0 && thisWk >= lastWk * 2) score += 1.5
   else if (lastWk > 0 && thisWk > lastWk) score += 0.75
@@ -44,14 +44,14 @@ function rankCluster(c) {
 }
 
 export default function Dashboard() {
-  const [tickets, setTickets] = useState([])
+  const [fragments, setFragments] = useState([])
   const [booted, setBooted] = useState(false)
   const [analysis, setAnalysis] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [expandedCategory, setExpandedCategory] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [selectedFragment, setSelectedFragment] = useState(null)
   const [streamOpen, setStreamOpen] = useState(false)
   // Fresh view each browser session: previous data stays in the database,
   // but the console opens at the source gate unless this session already
@@ -71,7 +71,7 @@ export default function Dashboard() {
   }, [streamOpen])
 
   useEffect(() => {
-    fetchTickets()
+    fetchFragments()
     fetchCachedAnalysis()
   }, [])
 
@@ -84,9 +84,9 @@ export default function Dashboard() {
         setStreamOpen(true)
         searchInputRef.current?.focus()
       } else if (e.key === 'Escape') {
-        setSelectedTicket((prev) => {
+        setSelectedFragment((prev) => {
           if (prev) return null
-          // no ticket panel open: close the stream drawer instead
+          // no fragment panel open: close the stream drawer instead
           setStreamOpen(false)
           return prev
         })
@@ -96,11 +96,11 @@ export default function Dashboard() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  async function fetchTickets() {
+  async function fetchFragments() {
     try {
-      const res = await apiFetch(API_BASE, '/api/tickets')
+      const res = await apiFetch(API_BASE, '/api/fragments')
       const data = await res.json()
-      setTickets(data)
+      setFragments(data)
       setError(null)
     } catch (e) {
       setError('Could not reach the backend. Is it running?')
@@ -109,9 +109,9 @@ export default function Dashboard() {
     }
   }
 
-  function handleGithubLoaded(data) {
+  function handleSourceLoaded(data) {
     setAnalysis(null)
-    fetchTickets()
+    fetchFragments()
     markResumed()
   }
 
@@ -144,7 +144,7 @@ export default function Dashboard() {
   }
 
   const noiseCount = analysis?.noise_filtered_count ?? null
-  const totalCount = analysis?.total_tickets_analyzed ?? tickets.length
+  const totalCount = analysis?.total_fragments_analyzed ?? fragments.length
 
   const sortedClusters = useMemo(() => {
     if (!analysis?.actionable_clusters) return []
@@ -152,32 +152,32 @@ export default function Dashboard() {
       .map((c) => ({ ...c, rank: rankCluster(c) }))
       .sort((a, b) => {
         if (b.rank.score !== a.rank.score) return b.rank.score - a.rank.score
-        return b.total_tickets - a.total_tickets
+        return b.total_fragments - a.total_fragments
       })
   }, [analysis])
 
-  // most common company across tickets = the source being analyzed
+  // most common company across fragments = the source being analyzed
   const sourceLabel = useMemo(() => {
-    if (!tickets.length) return null
+    if (!fragments.length) return null
     const counts = {}
-    for (const t of tickets) {
-      if (t.company) counts[t.company] = (counts[t.company] || 0) + 1
+    for (const f of fragments) {
+      if (f.company) counts[f.company] = (counts[f.company] || 0) + 1
     }
     const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
     return top ? top[0] : null
-  }, [tickets])
+  }, [fragments])
 
-  const gateShowing = booted && (tickets.length === 0 || !resumed) && !error
+  const gateShowing = booted && (fragments.length === 0 || !resumed) && !error
 
-  const filteredTickets = useMemo(() => {
+  const filteredFragments = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
-    if (!q) return tickets
-    return tickets.filter((t) =>
-      [t.subject, t.body, t.customer_name, t.company, t.channel, String(t.id)]
+    if (!q) return fragments
+    return fragments.filter((f) =>
+      [f.subject, f.body, f.customer_name, f.company, f.channel, String(f.id)]
         .filter(Boolean)
         .some((field) => field.toLowerCase().includes(q))
     )
-  }, [tickets, searchQuery])
+  }, [fragments, searchQuery])
 
   return (
     <div className="app">
@@ -189,21 +189,21 @@ export default function Dashboard() {
           </Link>
           <Logo size={24} />
           <span className="wordmark-text">Noiseglass</span>
-          <span className="topbar-sub">Support Trend Intelligence</span>
+          <span className="topbar-sub">Universal Signal Intelligence</span>
         </div>
         <div className="topbar-right">
-          {tickets.length > 0 && !gateShowing && (
+          {fragments.length > 0 && !gateShowing && (
             <button className="stream-toggle mono" onClick={() => setStreamOpen(true)}>
-              stream · {tickets.length}
+              stream · {fragments.length}
             </button>
           )}
           {!gateShowing && (
             <>
-              <GithubSourcePicker apiBase={API_BASE} onLoaded={handleGithubLoaded} />
+              <GithubSourcePicker apiBase={API_BASE} onLoaded={handleSourceLoaded} />
               <button
                 className="run-btn"
                 onClick={runAnalysis}
-                disabled={loading || tickets.length === 0}
+                disabled={loading || fragments.length === 0}
               >
                 {loading ? 'Resolving signal...' : analysis ? 'Re-run analysis' : 'Run analysis'}
               </button>
@@ -212,17 +212,17 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {!booted ? null : (tickets.length === 0 || !resumed) && !error ? (
+      {!booted ? null : (fragments.length === 0 || !resumed) && !error ? (
         <div className="welcome-gate">
           <h1 className="welcome-title">Where's your feedback?</h1>
           <p className="welcome-sub">
-            Point Noiseglass at any source of customer feedback and it'll cluster
+            Point Noiseglass at any source of raw text and it'll cluster
             the noise into ranked, actionable signals.
           </p>
-          <GithubSourcePicker apiBase={API_BASE} onLoaded={handleGithubLoaded} inline />
-          {tickets.length > 0 && (
+          <GithubSourcePicker apiBase={API_BASE} onLoaded={handleSourceLoaded} inline />
+          {fragments.length > 0 && (
             <button className="resume-link mono" onClick={markResumed}>
-              resume last session · {tickets.length} tickets →
+              resume last session · {fragments.length} fragments →
             </button>
           )}
         </div>
@@ -230,9 +230,9 @@ export default function Dashboard() {
       <>
       <div className="console-head">
         <div className="stats-row">
-          <button className="stat stat-clickable" onClick={() => setStreamOpen(true)} title="View the raw ticket stream">
+          <button className="stat stat-clickable" onClick={() => setStreamOpen(true)} title="View the raw fragment stream">
             <span className="stat-value">{totalCount}</span>
-            <span className="stat-label">tickets pulled →</span>
+            <span className="stat-label">fragments pulled →</span>
           </button>
           <div className="stat-divider" />
           <div className="stat">
@@ -267,12 +267,12 @@ export default function Dashboard() {
           </div>
 
           {!analysis && !loading && (
-            <EmptyState onRun={runAnalysis} disabled={tickets.length === 0} />
+            <EmptyState onRun={runAnalysis} disabled={fragments.length === 0} />
           )}
 
           {loading && (
             <AnalysisLoader
-              ticketCount={tickets.length}
+              fragmentCount={fragments.length}
               sourceName={sourceLabel}
             />
           )}
@@ -289,7 +289,7 @@ export default function Dashboard() {
                       expandedCategory === c.category ? null : c.category
                     )
                   }
-                  onSelectTicket={setSelectedTicket}
+                  onSelectFragment={setSelectedFragment}
                 />
               ))}
             </div>
@@ -302,7 +302,7 @@ export default function Dashboard() {
       <footer className="footer">
         <span className="footer-brand mono">NOISEGLASS © 2026</span>
         <span className="footer-sub">
-          real tickets · real trend math · written by Claude
+          real fragments · real trend math · written by Claude
         </span>
       </footer>
 
@@ -312,7 +312,7 @@ export default function Dashboard() {
             <div className="stream-drawer-header">
               <div>
                 <span className="eyebrow">Incoming</span>
-                <span className="panel-label-sub"> raw tickets, unsorted</span>
+                <span className="panel-label-sub"> raw fragments, unsorted</span>
               </div>
               <button className="detail-panel-close" onClick={() => setStreamOpen(false)}>
                 Esc
@@ -323,7 +323,7 @@ export default function Dashboard() {
                 ref={searchInputRef}
                 className="stream-search-input mono"
                 type="text"
-                placeholder="Search tickets..."
+                placeholder="Search fragments..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -331,9 +331,9 @@ export default function Dashboard() {
             </div>
             <div className="stream-drawer-body">
               <IncomingStream
-                tickets={filteredTickets}
+                fragments={filteredFragments}
                 loading={loading}
-                onSelect={setSelectedTicket}
+                onSelect={setSelectedFragment}
                 searching={searchQuery.trim().length > 0}
               />
             </div>
@@ -341,9 +341,9 @@ export default function Dashboard() {
         </div>
       )}
 
-      <TicketDetailPanel
-        ticket={selectedTicket}
-        onClose={() => setSelectedTicket(null)}
+      <FragmentDetailPanel
+        fragment={selectedFragment}
+        onClose={() => setSelectedFragment(null)}
       />
     </div>
   )

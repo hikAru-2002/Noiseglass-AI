@@ -1,6 +1,12 @@
 """
+DEPRECATED / UNUSED: Reddit was dropped as a source in the Noiseglass
+concept change (fewer, more universal ingestion paths: GitHub, Zendesk,
+upload, or any MCP-capable agent via raw text). Nothing imports this
+module anymore. Safe to delete this file
+(backend/reddit_ingest.py) whenever convenient.
+
 Pulls real Reddit posts mentioning a product and normalizes them into the
-same ticket shape ingest.py produces:
+same fragment shape ingest.py produces:
   { id, created_at, customer_name, company, channel, subject, body }
 
 Two access paths:

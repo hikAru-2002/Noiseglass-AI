@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 const FALLBACK_LABEL = { high: 'HIGH', medium: 'MODERATE', low: 'LOW' }
 
-// Percentages mislead at low volume (+100% can mean 0 -> 1 ticket), so the
+// Percentages mislead at low volume (+100% can mean 0 -> 1 fragment), so the
 // badge shows the actual week-over-week movement in plain numbers.
 function TrendBadge({ weekCounts }) {
   if (!weekCounts?.length) return null
@@ -141,7 +141,7 @@ function TrendChart({ weekCounts }) {
               i === 3 && hovered === null ? 'trend-chart-label-now' : ''
             }`}
           >
-            {hovered === i ? `${pts[i].count} ${pts[i].count === 1 ? 'ticket' : 'tickets'}` : label}
+            {hovered === i ? `${pts[i].count} ${pts[i].count === 1 ? 'fragment' : 'fragments'}` : label}
           </span>
         ))}
       </div>
@@ -149,7 +149,7 @@ function TrendChart({ weekCounts }) {
   )
 }
 
-export default function SignalCard({ cluster, expanded, onToggle, onSelectTicket }) {
+export default function SignalCard({ cluster, expanded, onToggle, onSelectFragment }) {
   if (!cluster) return null
 
   return (
@@ -163,10 +163,10 @@ export default function SignalCard({ cluster, expanded, onToggle, onSelectTicket
           >
             {cluster.rank?.label || FALLBACK_LABEL[cluster.severity] || 'LOW'}
           </span>
-          <span className="ticket-count mono">
-            {cluster.total_tickets}
-            <span className="ticket-count-unit">
-              {cluster.total_tickets === 1 ? ' ticket' : ' tickets'}
+          <span className="fragment-count mono">
+            {cluster.total_fragments}
+            <span className="fragment-count-unit">
+              {cluster.total_fragments === 1 ? ' fragment' : ' fragments'}
             </span>
           </span>
         </div>
@@ -188,18 +188,18 @@ export default function SignalCard({ cluster, expanded, onToggle, onSelectTicket
             <TrendChart weekCounts={cluster.week_counts} />
           </div>
           <div className="detail-row">
-            <span className="detail-label">Sample tickets</span>
-            <ul className="sample-ticket-list">
-              {cluster.sample_tickets?.map((t) => (
-                <li key={t.id}>
+            <span className="detail-label">Sample fragments</span>
+            <ul className="sample-fragment-list">
+              {cluster.sample_fragments?.map((f) => (
+                <li key={f.id}>
                   <button
-                    className="sample-ticket-btn"
-                    onClick={() => onSelectTicket?.(t)}
-                    title="View full ticket"
+                    className="sample-fragment-btn"
+                    onClick={() => onSelectFragment?.(f)}
+                    title="View full fragment"
                   >
-                    <span className="mono sample-ticket-id">{t.id}</span>
-                    <span className="sample-ticket-text">{t.normalized_issue}</span>
-                    <span className="sample-ticket-arrow mono">→</span>
+                    <span className="mono sample-fragment-id">{f.id}</span>
+                    <span className="sample-fragment-text">{f.normalized_issue}</span>
+                    <span className="sample-fragment-arrow mono">→</span>
                   </button>
                 </li>
               ))}

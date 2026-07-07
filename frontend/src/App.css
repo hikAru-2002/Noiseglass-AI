@@ -371,7 +371,7 @@ input {
   color: var(--text-primary);
 }
 
-/* Raw ticket stream drawer, slides in from the left */
+/* Raw fragment stream drawer, slides in from the left */
 .stream-overlay {
   position: fixed;
   inset: 0;
@@ -626,14 +626,14 @@ input {
   border-color: rgba(48, 209, 88, 0.25);
 }
 
-.ticket-count {
+.fragment-count {
   font-size: 18px;
   font-weight: 500;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
 
-.ticket-count-unit {
+.fragment-count-unit {
   font-size: 10.5px;
   font-weight: 400;
   color: var(--text-muted);
@@ -779,7 +779,7 @@ input {
   color: var(--text-secondary);
 }
 
-.sample-ticket-list {
+.sample-fragment-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -788,7 +788,7 @@ input {
   gap: 4px;
 }
 
-.sample-ticket-btn {
+.sample-fragment-btn {
   width: 100%;
   display: flex;
   align-items: baseline;
@@ -809,17 +809,17 @@ input {
               color var(--speed) var(--ease);
 }
 
-.sample-ticket-btn:hover {
+.sample-fragment-btn:hover {
   background: var(--surface-3);
   border-left-color: var(--border-focus);
   color: var(--text-primary);
 }
 
-.sample-ticket-text {
+.sample-fragment-text {
   flex: 1;
 }
 
-.sample-ticket-arrow {
+.sample-fragment-arrow {
   font-size: 11px;
   color: var(--text-faint);
   opacity: 0;
@@ -828,13 +828,13 @@ input {
               transform var(--speed) var(--ease);
 }
 
-.sample-ticket-btn:hover .sample-ticket-arrow {
+.sample-fragment-btn:hover .sample-fragment-arrow {
   opacity: 1;
   transform: translateX(0);
   color: var(--text-secondary);
 }
 
-.sample-ticket-id {
+.sample-fragment-id {
   font-size: 10.5px;
   color: var(--text-muted);
   white-space: nowrap;
@@ -1039,7 +1039,7 @@ input {
   position: relative;
 }
 
-/* First-run gate: shown when the workspace has no tickets yet */
+/* First-run gate: shown when the workspace has no fragments yet */
 .welcome-gate {
   max-width: 440px;
   margin: 8vh auto 60px;
@@ -1344,7 +1344,7 @@ input {
 }
 
 /* ------------------------------------------------------------------ */
-/* Ticket detail slide-over                                            */
+/* Fragment detail slide-over                                            */
 /* ------------------------------------------------------------------ */
 
 .detail-overlay {

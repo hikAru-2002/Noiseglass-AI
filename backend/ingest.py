@@ -1,6 +1,6 @@
 """
-Normalizes user-uploaded ticket data (CSV or pasted free text) into the same
-ticket shape the rest of the pipeline already expects:
+Normalizes user-uploaded fragment data (CSV or pasted free text) into the
+same fragment shape the rest of the pipeline already expects:
   { id, created_at, customer_name, company, channel, subject, body }
 
 This is intentionally permissive: real customer data will never be as clean
@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 
-REQUIRED_TEXT_FIELDS = ("body", "text", "description", "message", "ticket", "content")
+REQUIRED_TEXT_FIELDS = ("body", "text", "description", "message", "fragment", "ticket", "content")
 DATE_FIELDS = ("created_at", "date", "created", "timestamp")
 SUBJECT_FIELDS = ("subject", "title", "summary")
 CUSTOMER_FIELDS = ("customer_name", "customer", "name", "requester")
@@ -59,18 +59,18 @@ def _parse_date(raw: str) -> str:
         return datetime.now(timezone.utc).isoformat()
 
 
-def parse_csv_tickets(csv_text: str) -> list[dict]:
-    """Parse uploaded CSV text into normalized ticket dicts.
+def parse_csv_fragments(csv_text: str) -> list[dict]:
+    """Parse uploaded CSV text into normalized fragment dicts.
     Expects a header row; column names are matched case-insensitively
     against several common aliases (see *_FIELDS above)."""
     reader = csv.DictReader(io.StringIO(csv_text))
-    tickets = []
+    fragments = []
     for i, row in enumerate(reader):
         body = _first_present(row, REQUIRED_TEXT_FIELDS)
         if not body:
-            continue  # skip rows with no usable ticket text
+            continue  # skip rows with no usable fragment text
         subject = _first_present(row, SUBJECT_FIELDS) or body[:60]
-        tickets.append(
+        fragments.append(
             {
                 "id": f"UPL-{i + 1:04d}",
                 "created_at": _parse_date(_first_present(row, DATE_FIELDS)),
@@ -81,19 +81,19 @@ def parse_csv_tickets(csv_text: str) -> list[dict]:
                 "body": body,
             }
         )
-    return tickets
+    return fragments
 
 
-def parse_pasted_tickets(text: str) -> list[dict]:
-    """Parse freeform pasted text into normalized ticket dicts, one ticket
+def parse_pasted_fragments(text: str) -> list[dict]:
+    """Parse freeform pasted text into normalized fragment dicts, one fragment
     per non-empty line. No customer/company/date metadata is available, so
-    all tickets are stamped with the current time (they'll all land in the
+    all fragments are stamped with the current time (they'll all land in the
     'this week' bucket, which is the honest reflection of what we know)."""
     lines = [l.strip() for l in text.splitlines() if l.strip()]
     now_iso = datetime.now(timezone.utc).isoformat()
-    tickets = []
+    fragments = []
     for i, line in enumerate(lines):
-        tickets.append(
+        fragments.append(
             {
                 "id": f"PST-{i + 1:04d}",
                 "created_at": now_iso,
@@ -104,4 +104,4 @@ def parse_pasted_tickets(text: str) -> list[dict]:
                 "body": line,
             }
         )
-    return tickets
+    return fragments

@@ -2,9 +2,11 @@ node_modules/
 dist/
 __pycache__/
 *.pyc
+backend/data/fragments.json
 backend/data/tickets.json
 backend/data/analysis_cache.json
 backend/test_output.json
 .env
 backend/signal_local.db
 *.db
+backend/testwrite.tmp

@@ -3,7 +3,7 @@ export default function EmptyState({ onRun, disabled }) {
     <div className="empty-state">
       <div className="empty-state-icon">◇</div>
       <p className="empty-state-text">
-        Nothing's been sorted yet. Run analysis to turn raw tickets into
+        Nothing's been sorted yet. Run analysis to turn raw fragments into
         ranked, actionable signal.
       </p>
       <button className="run-btn run-btn-empty" onClick={onRun} disabled={disabled}>

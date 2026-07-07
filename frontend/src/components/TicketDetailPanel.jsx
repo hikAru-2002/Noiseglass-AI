@@ -1,3 +1,6 @@
+// DEPRECATED / UNUSED: replaced by FragmentDetailPanel.jsx in the
+// Noiseglass concept change. Nothing imports this file anymore. Safe to
+// delete (frontend/src/components/TicketDetailPanel.jsx) whenever convenient.
 export default function TicketDetailPanel({ ticket, onClose }) {
   if (!ticket) return null
 

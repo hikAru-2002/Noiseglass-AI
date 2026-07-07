@@ -1,5 +1,5 @@
 // Per-browser workspace identity. Every API call carries this ID so the
-// backend can keep each visitor's tickets, analyses, and history isolated.
+// backend can keep each visitor's fragments, analyses, and history isolated.
 
 const WORKSPACE_KEY = 'noiseglass-workspace-id'
 
